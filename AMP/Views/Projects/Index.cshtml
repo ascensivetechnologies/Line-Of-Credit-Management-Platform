@@ -1,0 +1,189 @@
+﻿@model GridModel<ProjectGridModel>
+@using AMP.ViewModels.Dashboad2
+@using AMP.Authentication
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+
+@using (Html.BeginForm("Index", "Projects", FormMethod.Get, new { id="gridForm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Projects <small>List of all active projects</small></h3>
+            </div>
+
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-3 col-sm-offset-3">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(e => e.MyRecords, new { style = "width: 15px;height: 15px;", onchange = "this.form.submit()" }) My Projects
+                        </div>
+
+                    </div>
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                        @if (user.IsInRole("DeskOfficer"))
+                        {
+                            <a class="btn btn-default" href="@Url.Action("Create", "Projects")">Create</a>
+                        }
+                    </div>
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.SearchText">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">Go!</button>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_content">
+
+                        <p>Showing the list of all projects currently active, go to the My Projects link to view projects linked to you!</p>
+
+                        <!-- start project list -->
+                        <table class="table table-striped projects">
+                            <thead>
+                                <tr>
+                                    <th style="width: 1%">#</th>
+                                    <th style="width: 20%">Project Name</th>
+                                    <th>Countries</th>
+                                    <th>Team Members</th>
+                                    <th>Project Value</th>
+                                    <th>Project Progress</th>
+                                    <th>Financial Progress</th>
+                                    <th>Status</th>
+                                    <th style="width: 5%"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var record in Model.Records ?? new List<ProjectGridModel>())
+                                {
+                                    <tr>
+                                        <td>#</td>
+                                        <td>
+                                            <a>@record.ProjectName</a>
+                                            <br />
+                                            <small>Created @record.CreatedOn</small>
+                                        </td>
+                                        <td><h5 class="green">@(string.IsNullOrEmpty(record.Countries) ? "NA" : record.Countries)</h5></td>
+                                        <td>
+                                            @*<ul class="list-inline">
+                                                    @foreach (var user in record.Team ?? new List<AMP.ViewModels.Dashboad2.TeamMembersModel>())
+                                                    {
+                                                        if (string.IsNullOrWhiteSpace(user.Image))
+                                                        {
+                                                            <li>
+                                                                <img src="images/user.png" class="avatar" alt="Avatar">
+                                                            </li>
+                                                        }
+                                                        else
+                                                        {
+                                                            <li>
+                                                                <img src="@user.Image" class="avatar" alt="Avatar">
+                                                            </li>
+                                                        }
+
+                                                    }
+                                                </ul>*@
+                                            NA
+                                        </td>
+                                            @*roundoff val*@
+                                            @*@string.Format("$ {0:n0}", record.ProjectValue*@
+                                        <td><h6 class="blue">$ @record.ProjectValue.ToString("0,0.00")</h6></td>
+                                        <td class="project_progress">
+                                            <div class="progress progress_sm">
+                                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@record.ProjectProgress"></div>
+                                            </div>
+                                            <small>@record.ProjectProgress % Complete</small>
+                                        </td>
+                                        <td class="project_progress">
+                                            <div class="progress progress_sm">
+                                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@record.FinancialProgress"></div>
+                                            </div>
+                                            <small>@record.FinancialProgress % Complete</small>
+                                        </td>
+                                        <td>
+                                            @if (string.IsNullOrEmpty(record.ProjectStatus))
+                                            {
+                                                <span>NA</span>
+                                            }
+                                            else
+                                            {
+                                                <button type = "button" class="btn btn-warning btn-xs">@record.ProjectStatus</button>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href = "@Url.Action("Edit", "Projects", new { Id = record.Id })" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i> View</a>
+                                            @*@if (user.IsInRole("DeskOfficer"))
+                                                {
+                                                    <a href="@Url.Action("Delete", "Projects", new { Id = record.Id })" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Archive </a>
+                                                }*@
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <!-- end project list -->
+
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="dataTables_info" role="status">@Model.Display</div>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                            <div class="pull-right" style="margin-top:5px;">
+                                <span>Page Size</span>
+                                @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                            </div>
+                            <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script type="text/javascript">
+    function showNotification(name, type, title) {
+        new PNotify({
+            title: title,
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+    const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#gridForm").submit();
+        }
+     $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+    @if (!string.IsNullOrEmpty((string)ViewBag.JavascriptFunction))
+    {
+        @Html.Raw(ViewBag.JavascriptFunction)
+    }
+</script>

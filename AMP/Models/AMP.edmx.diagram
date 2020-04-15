@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="b2ca8749b4fb4ebbb31c799301684cf9" Name="Diagram1" ZoomLevel="82">
+        <EntityTypeShape EntityType="AMPModel.ComponentDate" Width="1.5" PointX="5.25" PointY="61.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentMaster" Width="1.5" PointX="3" PointY="67.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.DeliveryChain" Width="1.5" PointX="5.25" PointY="75.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ImplementingOrganisation" Width="1.5" PointX="5.25" PointY="79.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.InputSectorCode" Width="1.5" PointX="11.25" PointY="68.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Marker" Width="1.5" PointX="5.25" PointY="82.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.PartnerMaster" Width="1.5" PointX="10.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Classifications" Width="1.5" PointX="5.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Contracts" Width="1.5" PointX="7.5" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Country" Width="1.5" PointX="0.75" PointY="17.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_LOC" Width="1.5" PointX="3" PointY="15" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_LOC_Contract" Width="1.5" PointX="9.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_LOC_Project" Width="1.5" PointX="5.25" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Projects" Width="1.5" PointX="3" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Projects_PQ" Width="1.5" PointX="5.25" PointY="8.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_StakeHolders" Width="1.5" PointX="8.25" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Status" Width="1.5" PointX="0.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Terms" Width="1.5" PointX="5.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Terms_Country" Width="1.5" PointX="3" PointY="24" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.CountryCode" Width="1.5" PointX="9" PointY="45.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.GeoCode" Width="1.5" PointX="11.25" PointY="62.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.LocationType" Width="1.5" PointX="9" PointY="42.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Precision" Width="1.5" PointX="9" PointY="88.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.AuditedFinancialStatement" Width="1.5" PointX="8.25" PointY="48.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ConditionalityReview" Width="1.5" PointX="8.25" PointY="53.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.DSOMarker" Width="1.5" PointX="8.25" PointY="57.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Evaluation" Width="1.5" PointX="11.25" PointY="71.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.EvaluationDocument" Width="1.5" PointX="13.5" PointY="77.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Markers1" Width="1.5" PointX="8.25" PointY="65.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.OverallRiskRating" Width="1.5" PointX="17.25" PointY="57.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Performance" Width="1.5" PointX="8.25" PointY="70.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectDate" Width="1.5" PointX="8.25" PointY="75.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectInfo" Width="1.5" PointX="8.25" PointY="80.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectMaster" Width="1.5" PointX="6" PointY="65.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Report" Width="1.5" PointX="8.25" PointY="83.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewARScore" Width="1.5" PointX="14.25" PointY="68" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDeferral" Width="1.5" PointX="14.25" PointY="62.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDocument" Width="1.5" PointX="19.5" PointY="68.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewExemption" Width="1.5" PointX="14.25" PointY="72.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewMaster" Width="1.5" PointX="17.25" PointY="66.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewOutput" Width="1.5" PointX="22.5" PointY="67.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewPCRScore" Width="1.5" PointX="19.5" PointY="64" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewScore" Width="1.5" PointX="20.25" PointY="72.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewStage" Width="1.5" PointX="12" PointY="58.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskDocument" Width="1.5" PointX="8.25" PointY="107.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskRegister" Width="1.5" PointX="17.25" PointY="60.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Team" Width="1.5" PointX="11.25" PointY="77.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.TeamExternal" Width="1.5" PointX="8.25" PointY="120.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.OutputIndicator" Width="1.5" PointX="10.5" PointY="124" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.OutputIndicatorMilestone" Width="1.5" PointX="12.75" PointY="124.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectOutput" Width="1.5" PointX="8.25" PointY="124.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.AuditedFinancialStatements1" Width="1.5" PointX="7.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentDates1" Width="1.5" PointX="10.75" PointY="5.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentDeliveryChain" Width="1.5" PointX="9.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentMaster1" Width="1.5" PointX="11.75" PointY="9.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Evaluation1" Width="1.5" PointX="12.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ImplementingOrganisation1" Width="1.5" PointX="11.75" PointY="14.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.InputSectorCodes1" Width="1.5" PointX="13.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Markers2" Width="1.5" PointX="13.75" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectDates1" Width="1.5" PointX="13.75" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectMarker" Width="1.5" PointX="14.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectMaster1" Width="1.5" PointX="15.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Team1" Width="1.5" PointX="15.75" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.AdminUser" Width="1.5" PointX="7.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.BenefitingCountry" Width="1.5" PointX="0.75" PointY="65.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.BudgetCentre" Width="1.5" PointX="0.75" PointY="68.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.CodePerformance" Width="1.5" PointX="15.75" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ErrorLog" Width="1.5" PointX="16.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.EvaluationManagement" Width="1.5" PointX="9" PointY="91.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.EvaluationType" Width="1.5" PointX="9" PointY="94.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ExemptionReason" Width="1.5" PointX="5.75" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.FundingArrangement" Width="1.5" PointX="7.75" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.FundingMech" Width="1.5" PointX="9.75" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.FundingMechToSector" Width="1.5" PointX="11.25" PointY="54.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.InputSector" Width="1.5" PointX="9" PointY="62.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Logging" Width="1.5" PointX="17.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.PartnerOrganisation" Width="1.5" PointX="17.75" PointY="9.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Portfolio" Width="1.5" PointX="8.25" PointY="129.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectRole" Width="1.5" PointX="9" PointY="97.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Risk" Width="1.5" PointX="15" PointY="58.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskCategory" Width="1.5" PointX="15" PointY="55.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskImpact" Width="1.5" PointX="17.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskLikelihood" Width="1.5" PointX="17.75" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Stage" Width="1.5" PointX="3.75" PointY="57.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.UserLookUp" Width="1.5" PointX="15.75" PointY="19.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.User" Width="1.5" PointX="1.5" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectPlannedEndDate" Width="1.5" PointX="17.75" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowDocument" Width="1.5" PointX="18.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowMaster1" Width="1.5" PointX="17.25" PointY="73.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowStage" Width="1.5" PointX="15" PointY="81.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowTask" Width="1.5" PointX="15" PointY="84.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.zComponentMaster_PreCR1515045" Width="1.5" PointX="11.75" PointY="20.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.zDeliveryChain_PreCR1292793" Width="1.5" PointX="19.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.AuditedFinancialStatementsTemp" Width="1.5" PointX="7.75" PointY="21.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Deferral" Width="1.5" PointX="8.25" PointY="136.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.DeferralReason" Width="1.5" PointX="19.75" PointY="10.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.EvaluationDocumentsTemp" Width="1.5" PointX="19.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectBudgetCentreOrgUnit" Width="1.5" PointX="8.25" PointY="140.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDocumentsTemp" Width="1.5" PointX="19.75" PointY="17.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskDocumentTemp" Width="1.5" PointX="19.75" PointY="21.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.AuditedFinancialStatementsTemp1" Width="1.5" PointX="13.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentDeliveryChainBackup" Width="1.5" PointX="15.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.Performance1" Width="1.5" PointX="21.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectInfo1" Width="1.5" PointX="21.75" PointY="8.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewARScore1" Width="1.5" PointX="21.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDeferral1" Width="1.5" PointX="21.75" PointY="17.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDocuments1" Width="1.5" PointX="21.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewDocumentsTemp1" Width="1.5" PointX="17.75" PointY="24.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewExemption1" Width="1.5" PointX="23.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewMaster1" Width="1.5" PointX="23.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewOutputs1" Width="1.5" PointX="9.75" PointY="25.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ReviewPCRScore1" Width="1.5" PointX="23.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskDocument1" Width="1.5" PointX="23.75" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskDocumentTemp1" Width="1.5" PointX="23.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.RiskRegister1" Width="1.5" PointX="5.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowMaster" Width="1.5" PointX="19.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentDateHashtable" Width="1.5" PointX="21.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentDates2" Width="1.5" PointX="23.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ComponentHashtable" Width="1.5" PointX="25.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.DateHashTable" Width="1.5" PointX="25.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectHashtable" Width="1.5" PointX="25.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectInfoTable" Width="1.5" PointX="25.75" PointY="16.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.ProjectTeamHash" Width="1.5" PointX="25.75" PointY="20.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.WorkflowDocumentsTemp" Width="1.5" PointX="25.75" PointY="24.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.vAMPAlert" Width="1.5" PointX="11.75" PointY="28.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.vAMPTask" Width="1.5" PointX="13.75" PointY="28.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AMPModel.V_ProjectClosure" Width="1.5" PointX="15.75" PointY="28.25" IsExpanded="true" />
+        <AssociationConnector Association="AMPModel.FK__Component__Compo__5BAD9CC8" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Component__Benef__5CA1C101" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Component__Budge__5D95E53A" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Component__Proje__5E8A0973" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__DeliveryC__Compo__5F7E2DAC" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Implement__Compo__607251E5" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__InputSect__Compo__6166761E" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Markers__Compone__634EBE90" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Markers__Compone__6442E2C9" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__InputSect__Input__625A9A57" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contra__PQId__373B3228" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC_C__Contr__44952D46" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC__Country__3DE82FB7" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Terms__Count__40C49C62" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC_C__LocId__43A1090D" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC_P__LocId__477199F1" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC_P__Proje__4865BE2A" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Proje__308E3499" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Stake__Proje__345EC57D" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK_TBL_Status_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Stake__UserI__336AA144" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__GeoCodes__Countr__65370702" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__GeoCodes__Locati__662B2B3B" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__GeoCodes__Precis__671F4F74" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__GeoCodes__Projec__681373AD" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__GeoCodes__Projec__690797E6" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__AuditedFi__Proje__69FBBC1F" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Condition__Proje__6AEFE058" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__DSOMarker__Proje__6DCC4D03" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Evaluatio__Evalu__6EC0713C" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Evaluatio__Evalu__719CDDE7" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Evaluatio__Manag__6FB49575" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Evaluatio__Proje__70A8B9AE" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Markers__Project__72910220" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__OverallRi__RiskS__5804F8DB" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Performan__Proje__74794A92" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectDa__Proje__76619304" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectIn__Proje__7755B73D" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Deferral__Projec__6BE40491" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Deferral__Projec__6CD828CA" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Portfolio__Proje__17C286CF" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectBu__Proje__756D6ECB" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectMa__Budge__7849DB76" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectMa__Stage__793DFFAF" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ProjectOu__Proje__15DA3E5D" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Reports__Project__7A3223E8" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewARS__Proje__7B264821" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewDef__Proje__73B00EE2" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewDef__Proje__7E02B4CC" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewExe__Proje__01D345B0" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewMas__Proje__03BB8E22" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewOut__Proje__078C1F06" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewPCR__Proje__09746778" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__RiskDocum__Proje__0B5CAFEA" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__RiskRegis__Proje__0D44F85C" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Team__ProjectID__10216507" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__TeamExter__Proje__12FDD1B2" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__WorkflowM__Proje__18B6AB08" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewARScore__7C1A6C5A" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewDef__Stage__72BBEAA9" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewDef__Stage__7FEAFD3E" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewDocuments__00DF2177" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewExe__Stage__02C769E9" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewMas__RiskS__04AFB25B" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewMas__Stage__05A3D694" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewOutputs__0880433F" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewPCRScore__0A688BB1" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__ReviewOut__Outpu__0697FACD" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__RiskRegis__Gross__0C50D423" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__RiskRegis__Resid__0E391C95" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__RiskRegis__RiskC__0F2D40CE" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Team__RoleID__11158940" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__Team__RoleID__1209AD79" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__OutputInd__Outpu__14E61A24" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__OutputInd__Proje__13F1F5EB" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__FundingMe__Secto__16CE6296" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__WorkflowM__Stage__19AACF41" ManuallyRouted="false" />
+        <AssociationConnector Association="AMPModel.FK__WorkflowM__TaskI__1A9EF37A" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Contacts" Width="1.5" PointX="3" PointY="31.5" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContactTypes" Width="1.5" PointX="0.75" PointY="32.5" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Project_Contacts" Width="1.5" PointX="7.875" PointY="0.75" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Conta__Conta__3335971A" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Conta__37FA4C37" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Proje__370627FE" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Conta__Count__39E294A9" />
+        <EntityTypeShape EntityType="AMPModel.TBL_AuditLogs" Width="1.5" PointX="26.375" PointY="27.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ProjectLogs" Width="1.5" PointX="5.25" PointY="31.625" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ProjectTimeLines" Width="1.5" PointX="5.25" PointY="21.875" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Proje__4277DAAA" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Proje__473C8FC7" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Files" Width="1.5" PointX="28.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_LocDetails" Width="1.5" PointX="28.375" PointY="3.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_RepaymentSchedule" Width="1.5" PointX="28.375" PointY="7.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_AMDemands" Width="1.5" PointX="28.375" PointY="11.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_CGS" Width="1.5" PointX="28.375" PointY="15.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_Contracts" Width="1.5" PointX="28.375" PointY="18.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_Disbursement" Width="1.5" PointX="28.375" PointY="22.75" />
+        <EntityTypeShape EntityType="AMPModel.BobEProcure_Packages" Width="1.5" PointX="28.375" PointY="26.75" />
+        <EntityTypeShape EntityType="AMPModel.BobEProcure_Status" Width="1.5" PointX="8.375" PointY="29.75" />
+        <EntityTypeShape EntityType="AMPModel.BobEProcure_Vendors" Width="1.5" PointX="22.375" PointY="29.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Roles" Width="1.5" PointX="5.25" PointY="38.125" />
+        <EntityTypeShape EntityType="AMPModel.TBL_UserRoleMap" Width="1.5" PointX="7.5" PointY="35" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Users" Width="1.5" PointX="5.25" PointY="34.5" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Users__Conta__2116E6DF" />
+        <AssociationConnector Association="AMPModel.FK__TBL_UserR__RoleI__26CFC035" />
+        <AssociationConnector Association="AMPModel.FK__TBL_UserR__UserI__25DB9BFC" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Logs" Width="1.5" PointX="30.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Options" Width="1.5" PointX="30.375" PointY="3.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContractContent" Width="1.5" PointX="9.75" PointY="40" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContractLC" Width="1.5" PointX="9.75" PointY="113.125" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContractLocMap" Width="1.5" PointX="10.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContractResponsibility" Width="1.5" PointX="9.75" PointY="105.375" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ContractTerms" Width="1.5" PointX="9.75" PointY="102.625" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__Contr__473C8FC7" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__Contr__4C0144E4" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__Contr__4EDDB18F" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__LocId__4FD1D5C8" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__Contr__4183B671" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Contr__Contr__4460231C" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_InterestDue" Width="1.5" PointX="30.375" PointY="10.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_PrincipalDue" Width="1.5" PointX="30.375" PointY="13.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_LocTransactions" Width="1.5" PointX="16.375" PointY="30.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_LOC_Amendments" Width="1.5" PointX="5.25" PointY="40.625" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LOC_A__LOC_I__24B26D99" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Count__Added__731B1205" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Count__Updat__740F363E" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_Contract_Transanctions" Width="1.5" PointX="30.375" PointY="6.75" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Optio__Added__77DFC722" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Optio__Updat__78D3EB5B" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Terms__Added__75035A77" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Terms__Updat__75F77EB0" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Activity" Width="1.5" PointX="8" PointY="100.875" />
+        <EntityTypeShape EntityType="AMPModel.TBL_LocBalance" Width="1.5" PointX="5.75" PointY="47.5" />
+        <EntityTypeShape EntityType="AMPModel.TBl_TeamMapping" Width="1.5" PointX="8" PointY="38.25" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Activ__Creat__2F2FFC0C" />
+        <AssociationConnector Association="AMPModel.FK__TBL_LocBa__LocId__30242045" />
+        <AssociationConnector Association="AMPModel.FK__TBl_TeamM__UserI__3118447E" />
+        <EntityTypeShape EntityType="AMPModel.TBL_ProjectLocations" Width="1.5" PointX="5.25" PointY="50.75" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Proje__Proje__3C89F72A" />
+        <EntityTypeShape EntityType="AMPModel.TBL_SyncLog" Width="1.5" PointX="30.375" PointY="17.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_String_Mapper" Width="1.5" PointX="18.375" PointY="30.75" />
+        <EntityTypeShape EntityType="AMPModel.Finacle_LocFinancials" Width="1.5" PointX="12.375" PointY="31.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_Regions" Width="1.5" PointX="7.5" PointY="111.5" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Count__Regio__02C769E9" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Regio__Added__4AD81681" />
+        <AssociationConnector Association="AMPModel.FK__TBL_Regio__Updat__76EBA2E9" />
+        <EntityTypeShape EntityType="AMPModel.Tbl_Applicants" Width="1.5" PointX="7.5" PointY="104.25" />
+        <EntityTypeShape EntityType="AMPModel.report_LOC" Width="1.5" PointX="30.375" PointY="20.75" />
+        <EntityTypeShape EntityType="AMPModel.report_Project" Width="1.5" PointX="24.375" PointY="31.75" />
+        <AssociationConnector Association="AMPModel.FK__Tbl_Applic__PqId__5DEAEAF5" />
+        <EntityTypeShape EntityType="AMPModel.TBL_MailBody" Width="1.5" PointX="30.375" PointY="31.75" />
+        <EntityTypeShape EntityType="AMPModel.TBL_EmailRules" Width="1.5" PointX="32.375" PointY="1" />
+        <EntityTypeShape EntityType="AMPModel.TBL_RuleTransactions" Width="1.5" PointX="34.625" PointY="1.25" />
+        <EntityTypeShape EntityType="AMPModel.TBL_EmailSchedule" Width="1.5" PointX="32.375" PointY="5.75" />
+        <AssociationConnector Association="AMPModel.FK__TBL_RuleT__RuleI__257187A8" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,140 @@
+﻿@model GridModel<CountryModel>
+@using AMP.ViewModels.Dashboad2
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+@using (Html.BeginForm("Index", "Country", FormMethod.Get, new { id="gridForm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Country List <small></small></h3>
+            </div>
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-5 col-sm-offset-5">
+                        <a class="btn btn-default" href="@Url.Action("Create","Country")">Create</a>
+                    </div>
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for...">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">Go!</button>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 text-center">
+                                    <ul class="pagination" style="margin:0px;">
+                                        @foreach (var apage in Model.AlphabetPagers)
+                                        {
+                                            <li class="@apage.ActiveCssClass"><a href="@Url.Action("Index", new {Search = apage.KeyChar })">@(string.IsNullOrEmpty(apage.KeyChar) ? "View All" : apage.KeyChar)</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- start country list -->
+                            <div class="table-responsive">
+                                <table class="table table-striped jambo_table bulk_action">
+                                    <thead>
+                                        <tr class="headings">
+                                            <th class="column-title">CIF </th>
+                                            <th class="column-title">Name </th>
+                                            <th class="column-title">Region </th>
+                                            <th class="column-title">Added By </th>
+                                            <th class="column-title">Added On </th>
+                                            <th class="column-title">Action </th>
+                                            <th class="bulk-actions" colspan="7">
+                                                <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var record in Model.Records ?? new List<CountryModel>())
+                                        {
+                                            <tr class="odd pointer">
+                                                <td class=" ">@record.CIF</td>
+                                                <td class=" ">@record.CountryName</td>
+                                                <td class=" ">@record.RegionName</td>
+                                                <td class=" ">@record.AddedBy</td>
+                                                <td class=" ">@record.AddedOn</td>
+                                                <td class="a-right a-right">
+                                                    <a href="@Url.Action("Delete", "Country", new { id = record.Id })">
+                                                        <span class="glyphicon glyphicon-remove mybtn-red" aria-hidden="true"></span>
+                                                    </a>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <a href="@Url.Action("Edit", "Country", new { id = record.Id })">
+                                                        <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="dataTables_info" role="status">@Model.Display</div>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                                    <div class="pull-right" style="margin-top:5px;">
+                                        <span>Page Size</span>
+                                        @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                                    </div>
+                                    <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                                </div>
+                            </div>
+                            <!-- end country list -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script type="text/javascript">
+    function showNotification(name, type, title) {
+        //alert(name);
+        new PNotify({
+            title: title,
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+    const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#gridForm").submit();
+        }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+    @if (!string.IsNullOrEmpty((string)ViewBag.JavascriptFunction))
+    {
+        @Html.Raw(ViewBag.JavascriptFunction)
+    }
+</script>

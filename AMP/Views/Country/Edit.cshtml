@@ -1,0 +1,53 @@
+﻿@model AMP.ViewModels.Dashboad2.CountryModel
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+@Html.Partial("_CreateOrUpdate.Country", Model)
+
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+
+<script type="text/javascript">
+    function showNotification(name, type) {
+        //alert(name);
+        new PNotify({
+            title: 'Error',
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+
+    @if (!string.IsNullOrEmpty((string)ViewBag.JavascriptFunction))
+    {
+        @Html.Raw(ViewBag.JavascriptFunction)
+    }
+</script>
+
+@section scripts{
+    <script>
+
+        $(document).ready(function () {
+            $('#country-loc-categ').change(function (event) {
+                var val = $(this).val();
+
+                $.getJSON("@Url.Action("GetTermsBySelectedId", "Country")?Loc=" + val, function (data) {
+                    $('#country-interest').val(data['InterestRate']);
+                    $('#country-commitment-fee').val(data['CommitmentFee']);
+                    $('#country-management-fee').val(data['ManagementFee']);
+                    $('#country-int-equ-type').val(data['Type']);
+                    $('#Percentage').val(data['Percentage']);
+                    $('#country-int-equ-app').val(data['ApprovalType']);
+                    $('#SpecialConditions').val(data['SpecialConditions']);
+                    $('#country-tenure').val(data['YearTenure']);
+                    $('#country-monatarium').val(data['MoratoriumYears']);
+                    $('#country-indian-contribution').val(data['ICR']);
+                    $("#int-type").val(data['InterestType']);
+                });
+            });
+        });
+
+    </script>
+}

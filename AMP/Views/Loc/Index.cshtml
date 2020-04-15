@@ -1,0 +1,163 @@
+﻿@model GridModel<LOCModel>
+@using AMP.ViewModels.Dashboad2
+@using AMP.Authentication
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+@using (Html.BeginForm("Index", "Loc", FormMethod.Get, new { id="gridForm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>LOCs <small>List of all active LOC</small></h3>
+            </div>
+
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-3 col-sm-offset-3">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(e => e.MyRecords, new { style = "width: 15px;height: 15px;", onchange = "this.form.submit()" }) My LOCs
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                        @if (user.IsInRole("DeskOfficer"))
+                        {
+                            <a class="btn btn-default" href="@Url.Action("Create", "Loc")">Create</a>
+                        }
+                    </div>
+
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.SearchText">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" name="Loc" type="submit">Go!</button>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_content">
+
+                        <p>Showing the list of all LOC currently active, go to the My LOCs link to view LOC linked to you!</p>
+
+                        <!-- start loc list -->
+                        <table class="table table-striped projects">
+                            <thead>
+                                <tr>
+                                    @*<th style="width: 1%">#</th>*@
+                                    <th>LOC Number</th>
+                                    <th style="width: 20%">LOC Name</th>
+                                    <th>Country</th>
+                                    <th>CIF</th>
+                                    <th>Amount</th>
+                                    <th>Projects</th>
+                                    <th>Utilization</th>
+                                    <th>Status</th>
+                                    @*<th style="width: 20%"></th>*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var record in Model.Records ?? new List<LOCModel>())
+                                {
+                                    <tr>
+                                        @*<td>#</td>*@
+                                        <td>
+                                            <a href="@Url.Action("Edit","Loc",new { Id = record.Id})"> @record.LOCNumber</a>
+                                            <br />
+                                            @if (String.IsNullOrWhiteSpace(record.SignedDate))
+                                            {
+                                                <small style="color:red;">Un-Signed</small>
+                                            }
+                                            else
+                                            {
+                                                <small>@record.SignedDate</small>
+                                            }
+
+                                        </td>
+                                        <td><h5>@record.LOCName</h5></td>
+                                        <td><h5 class="green">@record.CountryName</h5></td>
+                                        <td><h6 class="red"> @record.CIF</h6></td>
+                                        <td align="right"><h6 class="blue"> @string.Format("$ {0:n0}", record.AmountAllocated)</h6></td>
+                                        <td align="right"><h6 class="blue"> @record.AssociatedProjects</h6></td>
+                                        <td class="project_progress">
+                                            <div class="progress progress_sm">
+                                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@record.Utilization"></div>
+                                            </div>
+                                            <small>@string.Format("$ {0:n0}", record.Utilization)% Utilized</small>
+                                        </td>
+                                        <td>
+                                            @if (record.status)
+                                            {
+                                                <a href="@Url.Action("Edit","Loc",new { Id = record.Id})" class="btn btn-success btn-xs">Active</a>
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Action("Edit","Loc",new { Id = record.Id})" class="btn btn-danger btn-xs">Closed</a>
+                                            }
+
+                                        </td>
+                                        <td>
+                                            @*<a href="@Url.Action("Edit","Loc",new { Id = record.Id})" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i> View </a>*@
+                                            @*@if (user.IsInRole("DeskOfficer"))
+                                                {
+                                                    <a href="@Url.Action("Archive", "Loc", new { Id = record.Id })" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Archive </a>
+                                                }*@
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <!-- end loc list -->
+
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="dataTables_info" role="status">@Model.Display</div>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                            <div class="pull-right" style="margin-top:5px;">
+                                <span>Page Size</span>
+                                @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                            </div>
+                            <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script>
+    const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#gridForm").submit();
+        }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+</script>

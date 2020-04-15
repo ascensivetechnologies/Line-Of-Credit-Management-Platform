@@ -1,0 +1,272 @@
+﻿
+@{
+    ViewBag.Title = "ProjectDetails";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+@model ReportViewer
+@using AMP.ViewModels.Dashboad2
+
+@{
+    ViewBag.Title = "";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+@using (Html.BeginForm("StandardLOCReportExcel", "Report", FormMethod.Post))
+{
+    @Html.HiddenFor(e => e.ProcedureName)
+    @Html.HiddenFor(e => e.DisplayName)
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Report @Model.DisplayName<small></small></h3>
+            </div>
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+                        <span class="input-group-btn">
+
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    @{var k = 0;}
+                                    @for (var i = 0; i < Model.Filters.Count; i++)
+                                    {
+
+                                        @Html.HiddenFor(e => Model.Filters[i].FieldType)
+                                        @Html.HiddenFor(e => Model.Filters[i].FilterName)
+                                        @Html.HiddenFor(e => Model.Filters[i].isNullable)
+                                        @Html.HiddenFor(e => Model.Filters[i].hasDefault)
+                                        @Html.HiddenFor(e => Model.Filters[i].FieldValue, new { htmlAttributes = new { @class = "col-3 form-control", @placeholder = Model.Filters[i].DisplayName } })
+
+                                        k++;
+                                    }
+                                    <label for="region">Region</label>
+                                    <select name="Filter" id="region" class="mySelect for" multiple="multiple" style="width: 100%">
+                                        @for (int x = 0; x < @ViewBag.dropdown.Reports.Count; x++)
+                                        {
+                                            List<ReportRow> l = new List<ReportRow>(@ViewBag.dropdown.Reports[x].Rows.CompleteRecords);
+                                            foreach (var row in l.Select(e => e.Rows[2]).Distinct())
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(row.ToString()))
+                                                {
+                                                    <option value="@row">@row</option>
+                                                }
+
+
+                                            }
+                                        }
+
+                                    </select>
+
+                                </div>
+                                <div class="col-md-6 pull-right">
+                                    <label for="country">Country</label>
+                                    <select name="Filter" id="country" class="mySelect for" multiple="multiple" style="width: 100%">
+                                        @for (int x = 0; x < @ViewBag.dropdown.Reports.Count; x++)
+                                        {
+                                            List<ReportRow> l = new List<ReportRow>(@ViewBag.dropdown.Reports[x].Rows.CompleteRecords);
+                                            foreach (var row in l.Select(e => e.Rows[3]).Distinct())
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(row.ToString()))
+                                                {
+                                                    <option value="@row">@row</option>
+                                                }
+
+
+                                            }
+                                        }
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+                            <hr />
+                            <br />
+                            <div class="row">
+                                <div class="col-12">
+                                    <center>
+                                        <button class="btn btn-default" id="check" name="check">Filter</button>
+                                        <button class="btn btn-default" name="Excel" type="submit">Export To Excel!</button>
+
+                                    </center>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+        @for (int x = 0; x < Model.Reports.Count; x++)
+        {
+            @Html.HiddenFor(e => e.Reports[x].Id)
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="x_panel">
+                            <div class="x_content">
+                                <!-- start country list -->
+                                <div class="table-responsive">
+                                    <table class="table table-striped jambo_table bulk_action">
+                                        <thead>
+                                            <tr class="headings">
+                                                @foreach (var col in Model.Reports[x].Columns)
+                                                {
+                                                    <th class="column-title">@col </th>
+                                                }
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var row in Model.Reports[x].Rows.Records)
+                                            {
+                                                if (Session["filter"] == null)
+                                                {
+                                                    Console.WriteLine("session is null");
+                                                    <tr class="odd pointer">
+                                                        @foreach (var th in row.Rows)
+                                                        {
+                                                            <td class="column-title">@th </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("session is not null");
+                                                    if (Session["filter"].ToString().Equals(row.Rows[0]))
+                                                    {
+                                                        <tr class="odd pointer">
+                                                            @foreach (var th in row.Rows)
+                                                            {
+                                                                <td class="column-title">@th </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="dataTables_info" role="status">@Model.Reports[x].Rows.Display</div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input type="hidden" name="PageNo" id="PageNo" value="@Model.Reports[x].Rows.PageNo" />
+                                        <div class="pull-right" style="margin-top:5px;">
+                                            <span>Page Size</span>
+                                            @Html.DropDownListFor(x1 => x1.Reports[x].Rows.PageSize, Model.Reports[x].Rows.PageSizes, new { @name = "PageSize", id = "pageSizeSelect" })
+                                        </div>
+                                        <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                                    </div>
+                                </div>
+                                <!-- end country list -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section scripts{
+    <script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+
+    <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css" type="text/css">
+    <script type="text/javascript" src="~/Scripts/bootstrap-multiselect.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script>
+        @for (var i = 0; i < Model.Filters.Count; i++)
+        {
+            if (Model.Filters[i].FieldType == "datetime")
+            {
+                <text>                                            $('#@Model.Filters[i].FilterName.Replace("@","")').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });    </text>
+
+
+            }
+            if (Model.Filters[i].FilterName == "region")
+            {
+                <text>
+        var s =  "@Model.Filters[i].FieldValue".split(',');
+        var $Multi = $("#region").select2();
+           $Multi.val(s).trigger("change");
+        </text>
+            }
+            if (Model.Filters[i].FilterName == "country")
+            {
+                <text>
+        var s =  "@Model.Filters[i].FieldValue".split(',');
+        var $Multi = $("#country").select2();
+           $Multi.val(s).trigger("change");
+        </text>
+            }
+
+         }
+        $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Reports[0].Rows.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.Reports[0].Rows.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            let size = $("#pageSizeSelect").val();
+            var region = $('#region').val();
+                var country = $('#country').val();
+                 if (region == null)
+                    region = "";
+                if (country == null)
+                country = "";
+            window.location.href = "@Url.Action("ProjectDetails", "Report")" + "?&region=" + region + "&country=" + country + "&PageNo=" + page + "&PageSize=" + size;
+              
+            }
+        });
+        $(document).ready(function () {
+           // $('.mdb-select').materialSelect();
+            //$('#region').multiselect();
+            //$('#country').multiselect();
+            $(".mySelect").select2({
+                placeholder: "Select",
+                allowClear: false,
+                minimumResultsForSearch: 5
+            });
+            $("#check").click(function (e) {
+                var region = $('#region').val();
+                var country = $('#country').val();
+                 if (region == null)
+                    region = "";
+                if (country == null)
+                    country = "";
+                window.location.href = "@Url.Action("ProjectDetails", "Report")" + "?&region=" + region + "&country=" + country;
+                e.preventDefault();
+            });
+            $("#pageSizeSelect").val('@Model.Reports[0].Rows.PageSize');
+            $("#pageSizeSelect").on("change", function () {
+                let size = $("#pageSizeSelect").val();
+                var region = $('#region').val();
+                var country = $('#country').val();
+                 if (region == null)
+                    region = "";
+                if (country == null)
+                    country = "";
+                window.location.href = "@Url.Action("ProjectDetails", "Report")" + "?&region=" + region + "&country=" + country + "&PageNo=1&PageSize=" + size;
+               
+            })
+        });
+    </script>
+}

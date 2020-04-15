@@ -1,0 +1,259 @@
+﻿@model GridModel<RegionModel>
+@using AMP.ViewModels.Dashboad2;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+<style>
+    .mybtn-red {
+        color: #FF6347;
+    }
+
+    .mybtn-blue {
+        color: #00FFFF;
+    }
+</style>
+<script>
+    var deleteRegion = function (id, name) {
+        $("#deleteModal").modal('show');
+        $("#region-Id-Hid").val(id);
+        $("#region-name-Hid").val(name);
+        $("#regionName-Span").text(name);
+    }
+
+    var updateRegion = function (id, name) {
+        $("#myModal").modal('show');
+        $("#region-Id").val(id);
+        $("#region-name").val(name);
+    }
+
+    $(document).ready(function () {
+        $("#addRegionBtn").on("click", function () {
+            $("#region-name").val('');
+            $("#region-Id").val('0');
+            $("#myModal").modal('show');
+        });
+
+
+    });
+</script>
+@using (Html.BeginForm("Index", "Region", FormMethod.Get, new { id = "gridForm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Regions <small></small></h3>
+            </div>
+            <div class="title_right">
+                <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-5 col-sm-offset-5">
+                    <button id="addRegionBtn" type="button" class="btn btn-default pull-right">Add Region</button>
+                </div>
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.SearchText">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit" id="btnSearchRegion">Go!</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <div class="row">
+                                <div class="col-md-10 ">
+                                    <p>A list of regions dividing the world.</p>
+                                </div>
+                            </div>
+                            <!-- start project list -->
+                            <div class="row">
+                                <div class="table-responsive">
+                                    @*<table id="grid" data-source="@Url.Action("GetRegions")"></table>*@
+                                    <table class="table table-striped jambo_table bulk_action">
+                                        <thead>
+                                            <tr class="headings">
+                                                <th class="column-title">Name </th>
+                                                <th class="column-title">Countries </th>
+                                                @*<th class="column-title">Added By </th>*@
+                                                <th class="column-title">Added On </th>
+                                                <th class="column-title">Action </th>
+                                                <th class="bulk-actions" colspan="7">
+                                                    <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var record in Model.Records ?? new List<AMP.ViewModels.Dashboad2.RegionModel>())
+                                            {
+                                                <tr class="odd pointer">
+                                                    <td class=" ">@record.Name</td>
+                                                    <td class=" ">@record.Countries</td>
+                                                    @*<td class=" ">@record.AddedBy</td>*@
+                                                    <td class=" ">@record.AddedOn</td>
+                                                    <!-- <td class=" ">Jane Doe</td> -->
+                                                    <!-- <td class=" ">February 23, 2019 03:50:46 PM</td> -->
+                                                    <td class="a-right a-right">
+                                                        <a><span class="glyphicon glyphicon-remove mybtn-red form-delete" onclick="deleteRegion(@record.Id, '@record.Name')" aria-hidden="true" /></a>
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-pencil mybtn-blue form-popup" data-id="@record.Id" data-content="@record.Name" aria-hidden="true"></span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="dataTables_info" role="status">@Model.Display</div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                                        <div class="pull-right" style="margin-top:5px;">
+                                            <span>Page Size</span>
+                                            @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                                        </div>
+                                        <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                                    </div>
+                                </div>
+
+                                <!-- end Region list -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Regions</h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <br />
+                    <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">
+                                Region Name <span class="red">*</span>
+                            </label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="hidden" name="Id" id="region-Id">
+                                <input type="text" name="Name" id="region-name" required="required" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                            <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                                <button class="btn btn-primary" type="button" data-dismiss='modal'>Cancel</button>
+                                <button type="submit" id="RegionSubmit" class="btn btn-success">Submit</button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Confirmation</h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <br />
+                    <form id="demo-form2" data-parsley-validate class="form-horizontal">
+
+                        <div class="form-group">
+                            <b>Are you sure to delete this Region?</b>
+                        </div>
+                        <div class="form-group">
+                            <input type="hidden" name="Id" id="region-Id-Hid">
+                            <input type="hidden" name="Name" id="region-name-Hid">
+                            Region Name: <span class="red" style="font-weight:bold">*</span>
+                        </div>
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                            <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                                <button class="btn btn-primary" id="deleteBtn" type="button" data-dismiss='modal'>Yes</button>
+                                <button class="btn btn-success" type="button" data-dismiss='modal'>No</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+    <script type="text/javascript">
+         const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#gridForm").submit();
+    }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+        $(".form-popup").click(function () {
+            var id = $(this).attr('data-id');
+            var value = $(this).attr('data-content');
+            $("#region-name").val(value);
+            $("#region-Id").val(id);
+            $("#myModal").modal('show');
+        });
+
+        $("#deleteBtn").on("click", function () {
+            var deleteId = $("#region-Id-Hid").val();
+            $.ajax({ url: '@Url.Action("Delete")', type: "POST", data: { Id: deleteId } })
+                .done(function () {
+                    $("#deleteModal").modal("hide");
+                    window.location.href = '/Region';
+                })
+                .fail(function () {
+                    alert("Unable to delete.");
+                    $("#deleteModal").modal("hide");
+                });
+        });
+
+        $("#demo-form2").on("submit", function (e) {
+            e.preventDefault();
+            var Region = {
+                Id: $("#region-Id").val(),
+                Name: $("#region-name").val(),
+            };
+
+            //event.preventDefault();
+            $.ajax({ url: '@Url.Action("Update")', type: "POST", data: { model: Region } })
+                .done(function () {
+                    $("#myModal").modal("hide");
+                    window.location.href = '/Region';
+                })
+                .fail(function () {
+                    alert("Unable to save.");
+                    $("#myModal").modal("hide");
+                });
+
+        });
+    </script>
+}

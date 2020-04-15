@@ -1,0 +1,831 @@
+﻿@model AMP.ViewModels.ReportBuilder.ReportModel
+@using AMP.ViewModels.ReportBuilder
+@using System.Linq;
+@using Newtonsoft.Json;
+
+<div class="">
+    <div class="page-title">
+        <div class="title_left">
+            <h3>Report Details <small></small></h3>
+        </div>
+        <div class="title_right">
+            <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                <div class="input-group">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <p>Report</p>
+                        <!-- start project list -->
+                        @*@using (Html.BeginForm())*@
+                        @using(Html.BeginForm(null, null, FormMethod.Post, new {id="reportform" }))
+                        {
+                        @Html.HiddenFor(e => e.CreateReport)
+                        @Html.HiddenFor(e => e.ExcelExport)
+
+                        <div class="x_content" id="Normal">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-name">Report Name:<span class="red">*</span></label>
+                                                @Html.EditorFor(e => e.ReportName, new { htmlAttributes = new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Report Name" } })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="region">Entity:<span class="red">*</span></label>
+                                                @Html.DropDownListFor(e => e.SelectedEntity, Model.Entites, "Select", new { @class = "form-control", tabindex = "-1", onchange = "this.form.submit()" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Fields:<span class="red">*</span></label>
+                                                @Html.DropDownList("FieldsOptions", Model.Fields, "Select", new { @class = "form-control", tabindex = "-1", data_role = "tagsinput" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-risk-categ">Selected Fields:<span class="red">*</span></label>
+                                            </div>
+                                            <div>
+                                                <div>
+                                                    @Html.EditorFor(e => e.SelectedFields, new { htmlAttributes = new { id = "SelectedFields", data_role = "tagsinput SelectedFields", @required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Filters :@*<span class="red">*</span>*@</label>
+                                                @*@Html.DropDownList("FilterOptions", Model.Fields, "Select", new { @class = "form-control", tabindex = "-1", data_role = "tagsinput" })*@
+                                                <select class="form-control" id="FilterOptions" data_role="tagsinput">
+                                                    <option>Select</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Compare :@*<span class="red">*</span>*@</label>
+                                                @Html.DropDownList("WhereFilter", EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select Type", new { @class = "form-control" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">DataType :@*<span class="red">*</span>*@</label>
+                                                @Html.DropDownList("FilterType", EnumHelper.GetSelectList(typeof(FilterDataType)), "Select Type", new { @class = "form-control" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Filter Value :@*<span class="red">*</span>*@</label>
+                                                <input id="filtervalue" type="text" value="" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div>
+                                                <button id="AddRow" type="button" class="btn btn-success">Add</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container">
+                                <div class="row" id="filters">
+                                    @for (int i = 0; i < (Model.Filters ?? new List<AMP.ViewModels.ReportBuilder.Filter>()).Count; i++)
+                                    {
+                                    <div class="col-sm-12">
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    @Html.HiddenFor(e => Model.Filters[i].FieldName)
+                                                    @Html.DisplayFor(e => Model.Filters[i].FieldName, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <div class="form-group">
+                                                <div>
+                                                    @Html.DropDownListFor(e => Model.Filters[i].WhereFilter, EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select My Type", new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <div class="form-group">
+                                                <div>
+                                                    @Html.DropDownListFor(e => Model.Filters[i].FilterType, EnumHelper.GetSelectList(typeof(FilterDataType)), "Select My Type", new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    @Html.EditorFor(e => Model.Filters[i].Value, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    @Html.HiddenFor(e => Model.Filters[i].Removed)
+                                                    <button type="submit" onclick="DeleteRow(this)" class="btn btn-danger DeleteRow"><i class="fa fa-close"> Remove</i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="container"  style="display:none">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">GroupBy Fields:@*<span class="red">*</span>*@</label>
+                                                @Html.DropDownList("GrpFieldsOptions", Model.Fields, "Select", new { @class = "form-control", tabindex = "-1", data_role = "tagsinput" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-risk-categ">Selected GroupBy Fields:@*<span class="red">*</span>*@</label>
+                                            </div>
+                                            <div>
+                                                <div>
+                                                    @Html.EditorFor(e => e.GroupBySelectedFields, new { htmlAttributes = new { id = "GroupBySelectedFields", data_role = "tagsinput GroupBySelectedFields", @class = "form-control col-md-7 col-xs-12" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+
+
+                        </div>
+                        <div class="x_content">
+                            @*<div class="container">
+            <div class="row">
+                @Html.EditorFor(e => e.AdvancedMode, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", data_toggle = "toggle" } })
+            </div>
+        </div>*@
+                            <!-- Group Types-->
+                            <div class="container" id="aggregateFunction">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Aggregate Functions :@*<span class="red">*</span>*@</label>
+                                                @*@Html.DropDownList("GroupOptions", Model.Fields, "Select", new { @class = "form-control", tabindex = "-1", onchange="GroupTypeSelection(this)" })*@
+                                                <select class="form-control" id="GroupOptions" onchange="GroupTypeSelection(this)">
+                                                    <option>Select</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Type :@*<span class="red">*</span>*@</label>
+                                                <select id="GroupType" class="form-control"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div class="form-errors"></div>
+
+                                            <div>
+                                                <button id="AddGroupRow" type="button" class="btn btn-success">Add</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="container">
+                                <div class="row" id="GroupTypes">
+                                    @for (int i = 0; i < (Model.GroupBys ?? new List<AMP.ViewModels.ReportBuilder.GroupBy>()).Count; i++)
+                                    {
+                                        <div class="col-sm-12">
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.HiddenFor(e => Model.GroupBys[i].FieldName)
+                                                        @Html.DisplayFor(e => Model.GroupBys[i].FieldName, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.DropDownListFor(e => Model.GroupBys[i].Types, EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select My Type", new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.HiddenFor(e => Model.GroupBys[i].Removed)
+                                                        <button onclick="DeleteRow(this)" class="btn btn-danger DeleteRow"><i class="fa fa-close"> Remove</i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="FinancialYear">Field for Financial Year:</label>
+                                                <select class="form-control" id="FYDropdown">
+                                                    <option>Select</option>
+
+                                                </select>
+                                                <input type="hidden" id="FY" name="FY" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+
+                                            <div>
+                                                <div>
+                                                    <label for="Value">Financial Year Filter: (YYYY-YYYY)</label>
+                                                    @Html.EditorFor(e => e.FYValue, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Value" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!---->
+                            <!-- Group Filters-->
+                            <div class="container" style="display:none">
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Having Filter :<span class="red">*</span></label>
+                                                @Html.DropDownList("GroupFilters", Model.Fields, "Select", new { @class = "form-control", tabindex = "-1", onchange = "GroupOperandSelection(this)" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Type :<span class="red">*</span></label>
+                                                @Html.DropDownList("OperandOn", EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select Type", new { @class = "form-control" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Value :<span class="red">*</span></label>
+                                                @Html.DropDownList("Operand", EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select Type", new { @class = "form-control" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <label for="country-cif">Value :<span class="red">*</span></label>
+                                                <input type="text" id="CompareValue" value="" class="form-control col-md-7 col-xs-12" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <div class="form-group">
+                                            <div>
+                                                <button id="AddGroupOpRow" type="button" class="btn btn-success">Add</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="container">
+                                <div class="row" id="GroupOpTypes">
+                                    @for (int i = 0; i < (Model.GroupByFilters ?? new List<AMP.ViewModels.ReportBuilder.GroupByFilter>()).Count; i++)
+                                    {
+                                        <div class="col-sm-12">
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.HiddenFor(e => Model.GroupByFilters[i].FieldName)
+                                                        @Html.DisplayFor(e => Model.GroupByFilters[i].FieldName, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.DropDownListFor(e => Model.GroupByFilters[i].Operand, EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select My Type", new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.DropDownListFor(e => Model.GroupByFilters[i].Operator, EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select My Type", new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.EditorFor(e => Model.GroupByFilters[i].Value, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div>
+                                                        @Html.HiddenFor(e => Model.GroupByFilters[i].Removed)
+                                                        <button type="submit" onclick="DeleteRow(this)" class="btn btn-danger DeleteRow"><i class="fa fa-close"> Remove</i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <!---->
+
+
+                        </div>
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                            <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-5">
+                                <a class="btn btn-primary" href="@Url.Action("Index","Report")">Cancel</a>
+                                <button id="Excel" name="Create" type="submit" class="btn btn-success">Excel Export</button>
+                                <button id="Submit" name="Create" type="submit" class="btn btn-success">Submit</button>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                    <div class="x_content">
+                        <div class="container">
+                            <div class="row">
+                                @foreach(var record in (Model.Errors ?? new List<string>()))
+                                {
+                                    @Html.ValidationSummary(record)
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- end project list -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    @if (Model.AdvancedMode)
+    {
+        <text>
+    //$("#Normal *").attr("disabled", "disabled").off('click');
+        </text>
+    }
+    var fieldsForAggregateFuntions = "";
+    var fields = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.GroupByFields))');
+    function GroupTypeSelection(el) {
+        $(el).children("option:selected").val();
+        var list = `@Html.DropDownList("GroupBy", EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select My Type", new { @class = "form-control" })`;
+        var $list = $(list);
+        types = fields.find(x => x.FieldName === $(el).val()).ApplicableTypes;
+        $.each($list.find("option"), function (index, value) {
+            var v = $(value).val();
+            if (v != undefined) {
+                if (!(v.length == 0 || types.includes(parseInt(v)))) {
+                    $list.find('option[value=' + v + ']').remove();
+                }
+            }
+        });
+
+        $("#GroupType").html($list.html())
+
+    }
+
+    function GroupOperandSelection(el) {
+        $(el).children("option:selected").val();
+        var list = `@Html.DropDownList("OperandOn", EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select Type", new { @class = "form-control" })`;
+        var $list = $(list);
+        types = fields.find(x => x.FieldName === $(el).val()).ApplicableTypes;
+        $.each($list.find("option"), function (index, value) {
+            var v = $(value).val();
+            if (v != undefined) {
+                if (!(v.length == 0 || types.includes(parseInt(v)))) {
+                    $list.find('option[value=' + v + ']').remove();
+                }
+            }
+        });
+
+        $("#OperandOn").html($list.html())
+
+    }
+
+    function DeleteRow(el) {
+        var v = $("#aggregateFieldName").val();
+
+        var len = $('#GroupTypes > div.col-sm-12').length;
+        fieldsForAggregateFuntions=""
+        for (i = 0; i < len; i++)
+            fieldsForAggregateFuntions += $("#GroupBys_" + i + "__FieldName").val();
+
+        $("#ExcelExport").val(false);
+        $("#CreateReport").val(false);
+        $($(el).parent().children()[0]).val(true);
+
+        if (v != null) {
+            if (fieldsForAggregateFuntions.includes(v)) {
+                fieldsForAggregateFuntions = fieldsForAggregateFuntions.replace(v, '');
+            }
+
+        }
+
+    }
+
+
+    $(document).ready(function () {
+        var str = false;
+        @{
+            if (ViewData.ContainsKey("clearFields"))
+            {
+                //@:str = '@ViewData["clearFields"].ToString()'
+                @:str = true
+            }
+        }
+
+        if (!str) {
+            clearFields();
+        }
+      
+       // alert($('#SelectedFields').val());
+        $('#SelectedFields').tagsinput({
+            allowDuplicates: false,
+            itemValue: 'key',
+            itemText: 'value'
+        });
+        $('#GroupBySelectedFields').tagsinput({
+            allowDuplicates: false,
+            itemValue: 'key',
+            itemText: 'value'
+        });
+
+        var tags = JSON.parse(localStorage.getItem('tags'));
+        var grptags = JSON.parse(localStorage.getItem('grptags'));
+
+        var temp = "";
+        if (grptags != null) {
+            for (i = 0; i < grptags.length; i++) {
+                $('#GroupBySelectedFields').tagsinput('add', { "key": grptags[i].key, "value": grptags[i].value });
+                temp += grptags[i].key.toString();
+            }
+        }
+        //console.log("group by : "+temp);
+        if (tags != null) {
+            for (i = 0; i < tags.length; i++) {
+                $('#SelectedFields').tagsinput('add', { "key": tags[i].key, "value": tags[i].value });
+                var option = $("<option />");
+                option.html(tags[i].value);
+                option.val(tags[i].key);
+                $("#FilterOptions").append(option);
+                //console.log("inside tags : " + tags[i].key + " : " + temp.includes(tags[i].key));
+
+                if (!temp.includes(tags[i].key)) {
+                    //console.log("inside tags : " + tags[i].key);
+                    var option1 = $("<option />");
+                    option1.html(tags[i].value);
+                    option1.val(tags[i].key);
+                    $("#GroupOptions").append(option1);
+                }
+            }
+        }
+
+
+        //console.log($("#SelectedFields").val());
+
+        $("#SelectedEntity").change(function () {
+          
+            clearFields();
+            this.form.submit();
+        });
+
+
+
+        $("#AdvancedMode").change(function () {
+            $("#ExcelExport").val(false);
+            $("#CreateReport").val(false);
+            this.form.submit();
+        });
+
+        $("#Excel").click(function () {
+            var flag = true;
+
+            var len = $('#GroupTypes > div.col-sm-12').length;
+            fieldsForAggregateFuntions = ""
+            for (i = 0; i < len; i++)
+                fieldsForAggregateFuntions += $("#GroupBys_" + i + "__FieldName").val();
+
+            $("#GroupOptions > option").each(function () {
+
+                if (this.value != "Select") {
+
+                    if (fieldsForAggregateFuntions.indexOf(this.value) == -1) {
+                        flag = false;
+                    }
+                }
+            });
+
+            //if (!flag && $("#GroupBySelectedFields").val() !== '') {
+            //    alert("please select all fields of aggregate functions");
+            //    return false;
+            //}
+            $("#ExcelExport").val(true);
+        });
+
+        function clearFields() {
+            $("#filters").empty();
+            $("#GroupTypes").empty();
+            $("#GroupOpTypes").empty();
+            //$("#SelectedFields").val('');
+            $('#SelectedFields').tagsinput('removeAll');
+            $('#GroupBySelectedFields').tagsinput('removeAll');
+            //$("#GroupBySelectedFields").val('');
+            $("#ExcelExport").val(false);
+            $("#CreateReport").val(false);
+            localStorage.removeItem('tags');
+            localStorage.removeItem('grptags');
+
+        }
+
+        $("#Submit").click(function () {
+            var flag = true;
+
+            var len = $('#GroupTypes > div.col-sm-12').length;
+            fieldsForAggregateFuntions = ""
+            for (i = 0; i < len; i++)
+                fieldsForAggregateFuntions += $("#GroupBys_" + i + "__FieldName").val();
+
+            $("#GroupOptions > option").each(function () {
+
+                if (this.value != "Select") {
+
+                    if (fieldsForAggregateFuntions.indexOf(this.value) == -1) {
+                        flag = false;
+                    }
+                }
+            });
+
+            //if (!flag && $("#GroupBySelectedFields").val()!=='') {
+            //    alert("please select all fields of aggregate functions");
+            //    return false;
+            //}
+
+            $("#CreateReport").val(true);
+        });
+
+
+        $("#AddRow").click(function () {
+            var el = $('#filters > div.col-sm-12').length;
+            var filterName = $('#FilterOptions').children("option:selected").html();
+            var filterNameForDb = $('#FilterOptions').children("option:selected").val();
+            var operation = $('#WhereFilter').children("option:selected").val();
+            var filtertype = $('#FilterType').children("option:selected").val();
+             var list2 = `@Html.DropDownList("Operand", EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select My Type", new { @class = "form-control" })`;
+            list2 = $(list2).html();
+
+            var list3 = `@Html.DropDownList("DataType", EnumHelper.GetSelectList(typeof(FilterDataType)), "Select My Type", new { @class = "form-control" })`;
+            list3 = $(list3).html();
+
+            var filterValue = $("#filtervalue").val();
+
+            if (filterName != 'Select') {
+                var filter = `<div class="col-sm-12">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="Filters_0__FieldName""></label>
+                                        <input id="Filters_`+ el + `__FieldName" type="hidden" name= "Filters[` + el + `].FieldName" value= "` + filterNameForDb + `" />
+                                        `+ filterName + `
+                                    </div>
+                               </div>
+                            </div>
+                            <div class="col-sm-1">
+                                <div class="form-group">
+                                    <div>
+                                        <select id= "WhereFilters_`+ el + `__Operator" class ="form-control" name= "Filters[` + el + `].WhereFilter" >
+                                        `+ list2 +`
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class ="col-sm-1">
+                                <div class ="form-group">
+                                    <div>
+                                        <select id= "FilterType_`+ el + `__Operator" class ="form-control" name= "Filters[` + el + `].FilterType" >
+                                        `+ list3 +`
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label></label>
+                                        <input class ="form-control col-md-7 col-xs-12" name= "Filters[`+ el + `].Value" value= "` + filterValue + `" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class ="col-sm-3">
+                                <div class ="form-group">
+                                    <div>
+                                        <input data-val="false" data-val-required="The Removed field is required." id= "Filters_`+ el + `__Removed" name="Filters[` + el + `].Removed" type="hidden" value="false">
+                                        <button type="submit" onclick="DeleteRow(this)" class ="btn btn-danger DeleteRow"><i class ="fa fa-close"> Remove</i></button>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>`;
+                $('#filters').append(filter);
+                $("#WhereFilters_" + el + "__Operator").val(operation);
+                $("#FilterType_" + el + "__Operator").val(filtertype);
+            }
+            else
+                alert("Please Select Value in Filters Field");
+        });
+
+
+
+        $("#AddGroupRow").click(function () {
+            //if ($('#GroupBySelectedFields').val() == "") {
+            //    $(".form-errors").text("First select Fields in group by").show();
+            //}
+            //else {
+
+                $(".form-errors").text("First select Fields in group by").hide();
+                var el = $('#GroupTypes > div.col-sm-12').length;
+                var filterName = $('#GroupOptions').children("option:selected").html();
+                if (filterName != 'Select') {
+                    var filterNameForDb = $('#GroupOptions').children("option:selected").val();
+                    var filterValue = $('#GroupType').children("option:selected").val();
+                    var list = `@Html.DropDownList("GroupBy", EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select My Type", new { @class = "form-control"})`;
+                    list = $(list).html();
+                    var filter = `<div class="col-sm-12">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div >
+                                        <label for="GroupBys_0__FieldName""></label>
+                                        <input id= "GroupBys_`+ el + `__FieldName" type="hidden" name= "GroupBys[` + el + `].FieldName" value="` + filterNameForDb + `" />
+                                        `+ filterName + `
+                                    </div>
+                               </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label></label>
+                                        <select id= "GroupBys_`+ el + `__Types" name= "GroupBys[` + el + `].Types" class ="form-control">
+                                        `+ list + `
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class ="col-sm-4">
+                                <div class ="form-group">
+                                    <div>
+                                        <input data-val="false" data-val-required="The Removed field is required." id= "GroupBys_`+ el + `__Removed" name= "GroupBys[` + el + `].Removed" type="hidden" value="false">
+                                        <button type="submit"  onclick="DeleteRow(this)" class ="btn btn-danger DeleteRow"><i class ="fa fa-close"> Remove</i></button>
+                                         <input type="hidden" id="aggregateFieldName" value="`+ filterName + `" >
+                                    </div>
+                                </div>
+                            </div>
+                          </div>`;
+                    $('#GroupTypes').append(filter);
+                    $("#GroupBys_" + el + "__Types").val(filterValue);
+                }
+                else
+                    alert("Please Select Value in Aggregate Functions Field");
+            //}
+
+        });
+
+        $("#AddGroupOpRow").click(function () {
+            var el = $('#GroupOpTypes > div.col-sm-12').length;
+            var filterName = $('#GroupFilters').children("option:selected").html();
+            var filterNameForDb = $('#GroupFilters').children("option:selected").val();
+            var operation = $('#OperandOn').children("option:selected").val();
+            var operand = $('#Operand').children("option:selected").val();
+            var filterValue = $('#CompareValue').val();
+            var list = `@Html.DropDownList("OperandType", EnumHelper.GetSelectList(typeof(GroupByTypes)), "Select My Type", new { @class = "form-control" })`;
+            list = $(list).html();
+
+            var list2 = `@Html.DropDownList("Operand", EnumHelper.GetSelectList(typeof(GroupOperationsType)), "Select My Type", new { @class = "form-control" })`;
+            list2 = $(list2).html();
+
+            var filter = `<div class="col-sm-12">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <input id= "GroupByFilters_`+ el + `__FieldName" type="hidden" name= "GroupByFilters[` + el + `].FieldName" value= "` + filterNameForDb+`" />
+                                        `+filterName+ `
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <select id="GroupByFilters_`+el+`__Operand" class="form-control" name="GroupByFilters[`+el+`].Operand" >
+                                        `+list+`
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-1">
+                                <div class="form-group">
+                                    <div>
+                                        <select id= "GroupByFilters_`+el+`__Operator" class ="form-control" name= "GroupByFilters[`+el+`].Operator" >
+                                        `+list2+`
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <input id= "GroupByFilters_`+el+`__Value" type="text" class ="form-control" name= "GroupByFilters[`+el+`].Value" value= "`+filterValue+`" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-1">
+                                <div class="form-group">
+                                    <div>
+                                        <input data-val="false" class ="form-control" data-val-required="The Removed field is required." id= "GroupByFilters_`+el+ `__Removed" name= "GroupByFilters[`+el+`].Removed" type="hidden" value="false">
+                                        <button type="submit" onclick="DeleteRow(this)" class ="btn btn-danger DeleteRow"><i class ="fa fa-close"> Remove</i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+            $('#GroupOpTypes').append(filter);
+            $("#GroupByFilters_" + el + "__Operand").val(operation);
+            $("#GroupByFilters_" + el + "__Operator").val(operand);
+
+        });
+    });
+</script>

@@ -1,0 +1,156 @@
+﻿@model  List<AMP.ViewModels.Dashboad2.AmendmentsModel>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No changes made to the LOC terms yet.</p>
+}
+else
+{
+    foreach (var e in Model)
+    {
+        <div class="x_panel" style="height:auto;">
+            <div class="x_title">
+                <h2>
+                    Dated: @e.AmendmentDate   @if (e.Id == Model.Min(n => n.Id))
+                    {
+                        <small>
+                            Original
+                        </small>
+                    }
+                    else
+                    {
+                        <small>
+                            Amended by @e.AmendedBy on (@e.AuditDate).
+                        </small>
+                    }
+                </h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    @*<li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edit-modal-lg">Edit</button></li>*@
+                    @*<li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-amend-modal-lg">Amendments <span class="badge badge-pill badge-info">@((Model.Amendments ?? new List<AMP.ViewModels.Dashboad2.AmendmentsModel>()).Count)</span></button></li>*@
+                    <li><a class="collapse-link"><i class="fa fa-chevron-down"></i></a></li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content" style="display: none;">
+                <div class="row">
+                    <div class='col-sm-12'>
+                        <div class='col-sm-3'><h5>OM Number </h5></div>
+                        <div class="col-md-3">
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.OmNumber">@e.OMNumber</h5>
+                            </fieldset>
+                        </div>
+                        <div class='col-sm-3'><h5>Amount Allocated</h5></div>
+                        <div class='col-sm-3'>
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.AmountAllocated">$ @e.AmountAllocated.ToString("0,0.00")</h5>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class='col-sm-12'>
+                        <div class='col-sm-3'><h5>Terminal date of signing LOC </h5></div>
+                        <div class="col-md-3">
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.TerminalDate">@e.TerminalDate</h5>
+                            </fieldset>
+                        </div>
+                        <div class='col-sm-3'><h5>Indian Content Requirement </h5></div>
+                        <div class='col-sm-3'>
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.IndianContribution">@e.ICR%</h5>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class='col-sm-12'>
+                        <div class='col-sm-3'><h5>Date of MD Approval</h5></div>
+                        <div class='col-sm-3'>
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.MdAppDate">@e.MDDate</h5>
+                            </fieldset>
+                        </div>
+                        <div class='col-sm-3'><h5>Date of Offer Letter</h5></div>
+                        <div class='col-sm-3'>
+                            <fieldset>
+                                <h5 class="green" style="background-color:@e.LastAmmendmentComparer.OfferLetterDate">@e.OfferLetterDate</h5>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12">
+                    <div class="flex">
+                        <ul class="list-inline count2">
+                            <li>
+                                <h3 style="background-color:@e.LastAmmendmentComparer.InterestRate">@e.InterestType + @e.InterestRate%</h3>
+                                <span>Interest Rate</span>
+                            </li>
+                            <li>
+                                <h3 style="background-color:@e.LastAmmendmentComparer.CommitmentFee">@e.CommitmentFee%</h3>
+                                <span>Committment Fees</span>
+                            </li>
+                            <li>
+                                <h3 style="background-color:@e.LastAmmendmentComparer.ManagementFee">@e.ManagementFee%</h3>
+                                <span>Management Fees</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="flex">
+                        <ul class="list-inline count2">
+                            @if (!string.IsNullOrEmpty(e.MeaType))
+                            {
+                                <li>
+                                    <h3 style="background-color:@e.LastAmmendmentComparer.MEA_Percentage">@e.MeaType + @e.MeaPercentage%</h3>
+                                    <span>MEA Interest Equalization</span>
+                                </li>
+                            }
+                            @if (!string.IsNullOrEmpty(e.DeaType))
+                            {
+                                <li>
+                                    <h3 style="background-color:@e.LastAmmendmentComparer.DEA_Percentage">@e.DeaType + @e.DeaPercentage%</h3>
+                                    <span>DEA Interest Equalization</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="flex">
+                        <ul class="list-inline count2">
+                            <li>
+                                <h3 style="background-color:@e.LastAmmendmentComparer.Tenure">@e.TenureYears Years</h3>
+                                <span>Tenor</span>
+                            </li>
+                            <li>
+                                <h3 style="background-color:@e.LastAmmendmentComparer.Moratorium">@e.Moratorium Years</h3>
+                                <span>Moratorium</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                @if (!String.IsNullOrWhiteSpace(e.SpecialCondition))
+                {
+                    <div class="col-sm-12">
+                        <div class="flex">
+                            <ul class="list-inline count">
+                                <li>
+                                    <span style="background-color:@e.LastAmmendmentComparer.SpecialCondition">* @e.SpecialCondition</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    }
+}
+

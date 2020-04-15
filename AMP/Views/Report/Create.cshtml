@@ -1,0 +1,103 @@
+﻿@model AMP.ViewModels.ReportBuilder.ReportModel
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+@Html.Partial("_CreateOrUpdate.Report", Model)
+
+@section scripts
+{
+    
+    <script>
+        
+    $("#FieldsOptions").change(function () {
+        var value = $(this).children("option:selected").text();
+        var key = $(this).children("option:selected").val();
+
+        if (value != 'Select') {
+            $('#SelectedFields').tagsinput({
+                allowDuplicates: false,
+                itemValue: 'key',
+                itemText: 'value'
+            });
+
+            $('#SelectedFields').tagsinput('add', { "key": key, "value": value });
+
+            var IsExists = false;
+            $('#FilterOptions option').each(function () {
+                if (this.value == key || this.html == value) {
+                    IsExists = true;
+                }
+            });
+
+            if (!IsExists) {
+                var option = $("<option />");
+                option.html(value);
+                option.val(key);
+                var option1 = $("<option />");
+                option1.html(value);
+                option1.val(key);
+                var option2 = $("<option />");
+                option2.html(value);
+                option2.val(key);
+                $("#FilterOptions").append(option);
+                $("#GroupOptions").append(option1);
+                $("#FYDropdown").append(option2);
+                //filterOptions.push(option);
+            }
+            localStorage.setItem('tags', JSON.stringify($("#SelectedFields").tagsinput('items')))
+        }
+
+        });
+
+        $('#SelectedFields').on('itemRemoved', function (event) {
+            // event.item: contains the item
+            $("#FilterOptions option[value='" + event.item.key + "']").remove();
+            $("#GroupOptions option[value='" + event.item.key + "']").remove();
+            $("#FYDropdown option[value='" + event.item.key + "']").remove();
+            localStorage.setItem('tags', JSON.stringify($("#SelectedFields").tagsinput('items')))
+            $("#FieldsOptions").prop("selectedIndex", 0);
+        });
+
+        $("#GrpFieldsOptions").change(function () {
+            var value = $(this).children("option:selected").text();
+            var key = $(this).children("option:selected").val();
+
+            if (value != 'Select') {
+            $('#GroupBySelectedFields').tagsinput({
+                allowDuplicates: false,
+                itemValue: 'key',
+                itemText: 'value'
+            });
+           
+                $('#GroupBySelectedFields').tagsinput('add', { "key": key, "value": value });
+                $("#GroupOptions option[value='" + key + "']").remove();
+                localStorage.setItem('grptags', JSON.stringify($("#GroupBySelectedFields").tagsinput('items')))
+            }
+            
+        });
+
+        $('#GroupBySelectedFields').on('itemRemoved', function (event) {
+
+            var sel = $("#SelectedFields").val();
+            if (sel.indexOf(event.item.key) != -1) {
+                var option1 = $("<option />");
+                option1.html(event.item.value);
+                option1.val(event.item.key);
+                $("#GroupOptions").append(option1);
+
+            }
+            localStorage.setItem('grptags', JSON.stringify($("#GroupBySelectedFields").tagsinput('items')))
+            $("#GrpFieldsOptions").prop("selectedIndex",0);
+            
+        });
+
+        
+        $("#FYDropdown").change(function () {
+            var value = $(this).children("option:selected").val();
+            $("#FY").val(value) ;
+        });
+</script>
+}
+

@@ -1,0 +1,248 @@
+﻿@model OptionPageModel
+@using AMP.ViewModels.Dashboad2
+@{
+    ViewBag.Title = "Options";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+<script>
+    function OpenModal(id, value, type, parent) {
+        $("#Id").val(id);
+        $("#Type").val(type).change();
+        $("#ParentId").val(parent);
+        $("#Value").val(value).change();;
+        $('#myModal').modal('show');
+    }
+</script>
+
+@using (Html.BeginForm("Index", "Options", FormMethod.Get, new { @id = "optionListGridFrm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Options List <small></small></h3>
+            </div>
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-5 col-sm-offset-5">
+
+                    </div>
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.Model.SearchText">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">Go!</button>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <!-- start -->
+                            <div class="col-sm-12">
+                                <div class="col-sm-3">
+                                    Type: <span class="red">*</span>
+                                </div>
+                                <div class="col-sm-4">
+                                    @Html.DropDownList("SearchType", Model.GetOptionList, new { @class = "form-control", required = "required", id = "ddlOptions" })
+                                </div>
+                                <div class="col-sm-3">
+                                    <button class="btn btn-default" id="optionChanged" type="submit" style="display:none;">Go!</button>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Add New</button>
+                                </div>
+                            </div>
+                            <!-- end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <p>List of Options.</p>
+                            <!-- start country list -->
+                            <div class="table-responsive">
+                                <table class="table table-striped jambo_table bulk_action">
+                                    <thead>
+                                        <tr class="headings">
+
+                                            <th class="column-title">Type </th>
+                                            <th class="column-title">Value </th>
+                                            @*<th class="column-title">Parent </th>*@
+                                            <th class="column-title">Action </th>
+                                            <th class="bulk-actions" colspan="7">
+                                                <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var record in Model.Model.Records ?? new List<Options>())
+                                        {
+                                            var parent = record.ParentId.HasValue ? record.Parent.Value : "";
+                                            <tr class="odd pointer">
+                                                <td class=" ">@record.Type</td>
+                                                <td class=" ">@record.Value</td>
+                                                @*<td class=" ">@parent</td>*@
+                                                <td class="a-right a-right">
+                                                    <a href="@Url.Action("Delete", "Options", new { Id = record.Id })">
+                                                        <span class="glyphicon glyphicon-remove mybtn-red" aria-hidden="true"></span>
+                                                    </a>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @{ var type = (int)record.Type; }
+                                                    <button type="button" onclick="OpenModal(@record.Id,'@record.Value',@type,@record.ParentId)">
+                                                        <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="dataTables_info" role="status">@Model.Model.Display</div>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="PageNo" id="PageNo" value="@Model.Model.PageNo" />
+                                    <div class="pull-right" style="margin-top:5px;">
+                                        <span>Page Size</span>
+                                        @Html.DropDownListFor(x => x.Model.PageSize, Model.Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                                    </div>
+                                    <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                                </div>
+                            </div>
+                            <!-- end country list -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            @using (Html.BeginForm("Create", "Options", FormMethod.Post, new { @id = "CreateOption" }))
+            {
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Options List</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="x_panel">
+                                    <div class="x_content">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <input type="hidden" id="Id" name="Id" value="0" />
+                                                <div class="col-sm-3">
+                                                    @Html.DropDownList("Type", EnumHelper.GetSelectList(typeof(OptionTypes)), "Select Type", new { @class = "form-control hide", required = "required", @id = "ddlModalOptionType" })
+                                                    <strong><span>Type</span></strong>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <strong><i><span id="optionTypeTxt"></span></i></strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row" style="margin-top: 10px;">
+                                            <div class="col-12">
+                                                <input type="hidden" id="Id" name="Id" value="0" />
+                                                <div class="col-sm-3">
+                                                    <strong><span>Value <span class="red">*</span></span></strong>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    @Html.Editor("Value", new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                                    
+                                                </div>
+                                                <div class="col-sm-3">
+                                                    @*<span class="red" style="font-weight:bold;">*</span>*@
+                                                </div>
+                                                <div class="col-sm-3" id="sectorId" style="display: none">
+                                                    @Html.DropDownList("ParentId", Model.Model.Record.Parents, "Select Parent", new { @class = "form-control" })
+                                                </div>
+                                                <div class="col-sm-3" id="sectorfa" style="display: none">
+                                                    @Html.Editor("FaIcon", new { htmlAttributes = new { @class = "form-control" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="modal-footer">
+                    <div class="pull-left"><span class="red">*</span> Required Fields</div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script type="text/javascript">
+    function showNotification(name, type, title) {
+        new PNotify({
+            title: title,
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+     const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#optionListGridFrm").submit();
+    }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+    @if (!string.IsNullOrEmpty((string)ViewBag.JavascriptFunction))
+    {
+        @Html.Raw(ViewBag.JavascriptFunction)
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        $("#ddlOptions").on("change", function () {
+            $("#optionChanged").click();
+        })
+        $("#myModal").on('shown.bs.modal', function () {
+            var selectedOption = $("#ddlOptions").val();
+            $("#ddlModalOptionType").val(selectedOption);
+            let selectedOptionTxt = $("#ddlModalOptionType option:selected").html();
+            $("#optionTypeTxt").html(selectedOptionTxt);
+        });
+        $("#CreateOption").on('submit', function (e) {
+            //e.preventDefault();
+        })
+    })
+</script>

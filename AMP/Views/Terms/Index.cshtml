@@ -1,0 +1,119 @@
+﻿@model GridModel<TermsModel>
+@using AMP.ViewModels.Dashboad2
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+@using (Html.BeginForm("Index", "Terms", FormMethod.Get, new { id="gridForm" }))
+{
+<div class="">
+    <div class="page-title">
+        <div class="title_left">
+            <h3>Terms List <small></small></h3>
+        </div>
+        <div class="title_right">
+            <div class="pull-right">
+                <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-5 col-sm-offset-5">
+                    <a class="btn btn-default" href="@Url.Action("Create","Terms")">Create</a>
+                </div>
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+                    
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.SearchText">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">Go!</button>
+                            </span>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <p>List of LOC Guidelines with Default Terms.</p>
+                        <!-- start country list -->
+                        <div class="table-responsive">
+                            <table class="table table-striped jambo_table bulk_action">
+                                <thead>
+                                    <tr class="headings">
+                                        <th class="column-title">LOC Guideline Class </th>
+                                        @*<th class="column-title">Type </th>*@
+                                        <th class="column-title">Interest Rate </th>
+                                        <th class="column-title">Interest Type </th>
+                                        <th class="column-title">Commitment Fee </th>
+                                        <th class="column-title">Management Fee </th>
+                                        <th class="column-title">Action </th>
+                                        <th class="bulk-actions" colspan="7">
+                                            <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in Model.Records ?? new List<TermsModel>())
+                                    {
+                                    <tr class="odd pointer">
+                                        <td class=" ">@record.LOCClassification</td>
+                                        @*<td class=" ">@record.Type</td>*@
+                                        <td class=" ">@record.InterestRate</td>
+                                        <td class=" ">@record.InterestType</td>
+                                        <td class=" ">@record.CommitmentFee</td>
+                                        <td class=" ">@record.ManagementFee</td>
+                                        <td class="a-right a-right">
+                                            <a href="@Url.Action("Delete", "Terms", new { id = record.Id })">
+                                                <span class="glyphicon glyphicon-remove mybtn-red" aria-hidden="true"></span>
+                                            </a>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <a href="@Url.Action("Edit", "Terms", new { id = record.Id })">
+                                                <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="dataTables_info" role="status">@Model.Display</div>
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                                <div class="pull-right" style="margin-top:5px;">
+                                    <span>Page Size</span>
+                                    @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                                </div>
+                                <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                            </div>
+                        </div>
+                        <!-- end country list -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+}
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script>
+    const ChangePage = function (pageNumber) {
+        $("#ddlPages").val(pageNumber);
+        $("#gridForm").submit();
+        }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+</script>

@@ -1,0 +1,416 @@
+﻿@model AMP.ViewModels.Dashboad2.ProjectModel
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    bool isedit = false;
+    if (Model.Id != 0)
+    {
+        isedit = true;
+    }
+}
+
+<div class="">
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Project Details </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <span style="color:@ViewBag.TextColor">@ViewBag.Message</span>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                @using (Html.BeginForm("SaveProject", "Projects", new { isEdit = isedit }, FormMethod.Post, new {id= "projectForm" }))
+                {
+                    <div class="modal-body">
+                        <div class="container">
+                            @if (Model.Id > 0)
+                            {
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'>
+                                            Project Code
+                                        </div>
+                                        <div class="col-md-3">
+                                            <fieldset>
+                                                <div class="control-group">
+                                                    <div class="controls">
+                                                        <div class="col-md-11 xdisplay_inputx form-group">
+                                                            @Model.Code
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Project Name<span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            @Html.HiddenFor(e => e.Id)
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group" >
+                                                        @Html.EditorFor(e => e.Name , new
+                                                        {
+                                                            htmlAttributes = new
+                                                            {
+                                                                @class = "form-control",
+                                                        @id = "ProjectName" ,
+                                                                @placeholder = "Project Name",
+                                                                required = "required"
+                                                            }
+                                                        })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Project Value
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.ProjectValue, new
+                                                           {
+                                                               htmlAttributes = new
+                                                               {
+                                                                   @class = "form-control",
+                                                                   @id = "ProjectValue",
+                                                               }
+                                                           })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Address
+                                    </div>
+                                    <div class="col-md-6">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.Address, new
+                                                        {
+                                                            htmlAttributes = new { @class = "form-control", @placeholder = "Address" }
+                                                   })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Description
+                                    </div>
+                                    <div class="col-md-6">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.TextAreaFor(e => e.Description, new
+                                                           {
+                                                               @class = "form-control",
+                                                               @id = "Description",
+                                                               @placeholder = "Project Description",
+                                                               @rows = 8,
+                                                           })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Sector
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.DropDownListFor(e => e.Sector, Model.Sectors, new { @class = "form-control" })
+
+                                                        @*@Html.DropDownList("Sector", new List<System.Web.Mvc.SelectListItem>
+                                                            {
+                                                                new SelectListItem { Text = "A", Value = "1"},
+                                                                new SelectListItem { Text = "B", Value = "2"},
+                                                                new SelectListItem { Text = "C", Value = "3"},
+                                                                new SelectListItem { Text = "D", Value = "4"}
+                                                            }, new { @class = "form-control", @id = "SectorList" })*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        Sub Sector
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.SubSectorName, new
+                                                       {
+                                                       htmlAttributes = new
+                                                            {
+                                                                @class = "form-control",
+                                                                    //@id = "SubSectorList",
+                                                                    @placeholder = "Sub Sector"
+                                                            }
+                                                        }
+                                                       )
+
+                                                        @*@Html.DropDownListFor(e => e.SubSector, new List<System.Web.Mvc.SelectListItem>
+        {
+            new SelectListItem { Text = "SubSector A", Value = "1"},
+            new SelectListItem { Text = "SubSector B", Value = "2"},
+            new SelectListItem { Text = "SubSector C", Value = "3"},
+            new SelectListItem { Text = "SubSector D", Value = "4"}
+        }, new { @class = "form-control", @id = "SubSectorList" })*@
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>Project Start Date <span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @Html.EditorFor(e => e.StartDateTxt, new { htmlAttributes = new { @required = "required", @class = "form-control has-feedback-left", @id = "StartDate", @placeholder = "Start Date" } })
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>Project End Date<span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @Html.EditorFor(e => e.EndDateTxt, new { htmlAttributes = new { @required = "required", @class = "form-control has-feedback-left", @id = "EndDate", @placeholder = "End Date" } })
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-3'>
+                                    Project Completion Percentage
+                                </div>
+                                <div class="col-md-3">
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx form-group">
+                                                    @Html.EditorFor(e => e.ProjectProgress, new
+                                                   {
+                                                       htmlAttributes = new
+                                                       {
+                                                           @class = "form-control",
+                                                           @id = "ProjectProgress",
+                                                       }
+                                                   })
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container" style="margin-top:10px;">
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Note
+                                    </div>
+                                    <div class="col-md-6">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.TextAreaFor(e => e.Note, new
+                                                           {
+                                                               @class = "form-control",
+                                                               @id = "Note",
+                                                               @placeholder = "Note or Remarks",
+                                                               @rows = 3,
+                                                           })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="pull-left"><span class="red">*</span> Required Fields</div>
+                        @if (Model.Id == 0)
+                        {
+                            <a href="@Url.Action("Index")" class="btn btn-default">Close</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Edit", new {Id = Model.Id })" class="btn btn-default">Close</a>
+                        }
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script src="~/Scripts/moment.min.js"></script>
+    <link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+    <script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+    <script>
+        $('#StartDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#EndDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        function SetTimeline() {
+
+            //Temp disable of all input fields:
+
+            $("zoomIn").prop('disabled', false);
+            $("zoomOut").prop('disabled', false);
+            $("moveLeft").prop('disabled', false);
+            $("moveRight").prop('disabled', false);
+
+
+            // Configuration for the Timeline
+            var options = {
+                clickToUse: true
+            };
+
+            // Create a Timeline
+            var timeline = new vis.Timeline(container, items, options);
+
+            /**
+* Move the timeline a given percentage to left or right
+* param {Number} percentage   For example 0.1 (left) or -0.1 (right)
+*/
+            function move(percentage) {
+                var range = timeline.getWindow();
+                var interval = range.end - range.start;
+
+                timeline.setWindow({
+                    start: range.start.valueOf() - interval * percentage,
+                    end: range.end.valueOf() - interval * percentage
+                });
+            }
+
+            /**
+                 * Zoom the timeline a given percentage in or out
+                 * param {Number} percentage   For example 0.1 (zoom out) or -0.1 (zoom in)
+                 */
+            function zoom(percentage) {
+                var range = timeline.getWindow();
+                var interval = range.end - range.start;
+
+                timeline.setWindow({
+                    start: range.start.valueOf() - interval * percentage,
+                    end: range.end.valueOf() + interval * percentage
+                });
+            }
+
+            // attach events to the navigation buttons
+            document.getElementById('zoomIn').onclick = function () { zoom(-0.2); };
+            document.getElementById('zoomOut').onclick = function () { zoom(0.2); };
+            document.getElementById('moveLeft').onclick = function () { move(0.2); };
+            document.getElementById('moveRight').onclick = function () { move(-0.2); };
+        }
+        function showNotification(name, type, title) {
+            //alert(name);
+            new PNotify({
+                title: title,
+                text: name,
+                type: type,
+                styling: 'bootstrap3'
+            });
+        };
+        $(document).ready(function () {
+            
+            $("#projectForm").on('submit', function (e) {
+                let startDate = moment($("#StartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
+                let endDate = moment($("#EndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
+                let isAfter = moment(startDate).isAfter(endDate);
+                if (isAfter) {
+                    e.preventDefault();
+                    showNotification('Start date cannot be greater than end date', 'error', 'Error');
+                }
+                
+            })
+        })
+    </script>
+
+}
+

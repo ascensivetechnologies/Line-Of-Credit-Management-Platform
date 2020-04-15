@@ -1,0 +1,127 @@
+﻿@using AMP.Authentication
+@model SyncDetailModel
+@using AMP.ViewModels.Dashboad2
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+
+<div class="x_panel">
+    <div class="x_title">
+        <h2>Data Sync from Finacle and Bob e-Procure</h2>
+        <ul class="nav navbar-right panel_toolbox">
+            <li>
+                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <a href="#">Settings 1</a>
+                    </li>
+                    <li>
+                        <a href="#">Settings 2</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+
+        @if (user.IsInRole("Admin"))
+        {
+            <div class="buttons">
+                <div class="col-md-5">
+                    Last Synced on : @Model.FinacleLastDate <br/>
+                    <a id="afin" type="button" class="btn btn-info btn-lg" onclick="disable();" href="@Url.Action("SyncFinacle", "Sync")"> Sync Finacle</a>
+                </div>
+                <div class="col-md-1">
+                    <img id="fin" style="display:none;" width="70" src="~/Content/Dashboard2/build/images/loading.gif" />
+                </div>
+                @*<div class="col-md-6">
+                    Last Synced on : @Model.BobLastDate <br/>
+                    <a id="abob" type="button" class="btn btn-success btn-lg" onclick="disable();" href="@Url.Action("SyncBobeProcure", "Sync")">Sync Bob eProcure</a>
+                </div>*@
+            </div>
+        }
+    </div>
+
+</div>
+
+
+<div class="x_panel">
+    <div class="x_title">
+        <h2>Data Sync Log <small>The following list shows the most recent Sync attempts and their status.</small></h2>
+        <ul class="nav navbar-right panel_toolbox">
+            <li>
+                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>System</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model.SyncLog ?? new List<AMP.ViewModels.Dashboad2.SyncModel>())
+                {
+                    <tr>
+                        <td>@record.CreatedOn</td>
+                        <td>@record.System</td>
+                        <td>@record.ServiceName</td>
+                        <td>@record.Status</td>
+                        <td>@record.FullMessage</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+
+
+
+<!-- PNotify -->
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+@*<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">*@
+@*<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">*@
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+@*<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.buttons.js"></script>*@
+@*<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.nonblock.js"></script>*@
+
+<script type="text/javascript">
+    function showNotification(name, type) {
+        //alert(name);
+        new PNotify({
+            title: 'Sync',
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+
+    function disable() {
+        $("#afin").css("pointer-events", "none");
+        $("#abob").css("pointer-events", "none");
+        $("#fin").css("display", "block");
+    };
+</script>
+<script type="text/javascript">
+    @Html.Raw(ViewBag.JavaScriptFunction)
+</script>

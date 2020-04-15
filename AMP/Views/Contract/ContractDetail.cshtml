@@ -1,0 +1,2559 @@
+﻿@model AMP.ViewModels.Dashboad2.ContractModel
+@using AMP.Authentication
+@using System.Globalization
+@{
+    ViewBag.Title = "ContractDetail";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+<script>
+    var selectedApplicantId = 0;
+    var selectedApplicantName = '';
+    var selectedApplicantOrg = '';
+    var selectedApplicantStatus = 'Pending';
+    const selectApplicant = function (id, name, org, pqStatus) {
+        selectedApplicantId = id;
+        selectedApplicantName = name;
+        selectedApplicantOrg = org;
+        selectedApplicantStatus = pqStatus;
+    }
+    function showNotification(name, type, title) {
+        new PNotify({
+            title: title,
+            text: name,
+            type: type,
+            styling: 'bootstrap3'
+        });
+    };
+    @if (ViewData.ContainsKey("JavascriptFunction"))
+    {
+        @Html.Raw(ViewData["JavascriptFunction"].ToString())
+    }
+    $(document).ready(function () {
+
+        $("#contract-file-upload").on("submit", function(e){
+            e.preventDefault();
+            if(fileValidation()){
+                var formData = new FormData();
+                var file = document.getElementById("contract-file").files[0];
+                formData.append("File", file);
+                formData.append("ContractId", @Model.Id);
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AddContractFile", "Contract")',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function (result) {
+                        window.location.reload();
+                    },
+                    error: function (xhr, status) {
+                        alert("Unable to upload file.");
+                    }
+                });
+            }
+        });
+
+        const fileValidation = function(){
+            var ext = $('#contract-file').val().split('.').pop().toLowerCase();
+            if ($.inArray(ext, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("contract-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("File size must be less than 5MB");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        $("#editContractNumBtn").on('click', function () {
+            $("#contractNumTxt").val($("#updContractNumber").val());
+            $(".bs-updatecontract-num-modal-lg").modal('show');
+        });
+        $(".bs-updatecontract-num-modal-lg").on("hide.bs.modal", function () {
+            window.location.reload();
+        });
+        $("#updateContractNumBtn").on("click", function (e) {
+            let contractId = $("#updContractId").val();
+            let contractNumber = $("#contractNumTxt").val();
+            $("#codeSuccessUpdate").text('');
+            $("#codeErrorUpdate").text('');
+            if (contractNumber == "") {
+                $("#codeErrorUpdate").text("Contract number cannot be empty.");
+                return;
+            }
+            else {
+                $.ajax({
+                    url: '@Url.Action("UpdateContractNumber")',
+                    type: 'POST',
+                    data: { code: contractNumber, contractId: contractId }
+                }).done(function (result) {
+                    if (result.Status) {
+                        $("#codeSuccessUpdate").text(result.Message);
+                    } else {
+                        $("#codeErrorUpdate").text(result.Message);
+                    }
+                }).fail(function () {
+                    $("#codeErrorUpdate").text("Something went wrong while updating project code.");
+                });
+            }
+        });
+        $(".bs-pqapplicants-modal-lg").on("show.bs.modal", function (e) {
+            $("#ApplicantId").val(selectedApplicantId);
+            $("#ApplicantName").val(selectedApplicantName);
+            $("#ApplicantOrg").val(selectedApplicantOrg);
+            $("#ApplicantStatus").val(selectedApplicantStatus);
+        });
+    });
+
+    function OpenPayment()
+    {
+        $('#PaymentTermId').val(0);
+        $('#Sequence').val('');
+        $('#Milestone').val('');
+        $('#Percentage').val('');
+        $('#Amount').val('');
+        $('#Note').val('');
+
+        $('#paymentTerms').modal('toggle');
+    }
+
+    function payment(Id,Sequence,Milestone, Percentage, Amount, Note)
+    {
+        $('#PaymentTermId').val(Id);
+        $('#Sequence').val(Sequence);
+        $('#Milestone').val(Milestone);
+        $('#Percentage').val(Percentage);
+        $('#Amount').val(Amount);
+        $('#Note').val(Note);
+
+        $('#paymentTerms').modal('toggle');
+    }
+
+</script>
+
+<div class="">
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Contract Details </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        @if (user.IsInRole("DeskOfficer"))
+                        {
+                            <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edit-modal-lg">Edit</button></li>
+                        }
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="x_content">
+
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+
+                        <ul class="stats-overview">
+
+                            <li>
+                                <span class="name"> Contract Value </span>
+                                <span class="value text-success">@Model.EstimateValue.ToString("C2", CultureInfo.CreateSpecificCulture("en-US")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Amount Disbursed </span>
+                                <span class="value text-success">$ @Model.AmountDisbursed.ToString("0,0.00") </span>
+                            </li>
+                            <li class="hidden-phone">
+                                <span class="name"> Contract Type </span>
+                                <span class="value text-success"> @(string.IsNullOrEmpty(Model.ContractType) ? "NA" : Model.ContractType) </span>
+                            </li>
+                        </ul>
+                        <br />
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Prequalification Details <small>Details captured from the eProcurement system.</small></h2>
+
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-6'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Application start date</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.ApplicationStart))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.ApplicationStart</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Application end date</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.ApplicationEnd))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.ApplicationEnd</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>PQ documents published on</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.PqDocPublishedOn))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.PqDocPublishedOn</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Last date for submission</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.LastSubmissionOn))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.LastSubmissionOn</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-6'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>PQ reference number</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.PQRefNumber))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.PQRefNumber</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Addendum Ref No.</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.AddEndumRefno))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.AddEndumRefno</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Project Cost for which PQ is being /was undertaken(USD mn)</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    <h5 class="green">@Model.ProjectPqDetail.ProjectCost</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Category </h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.Category))
+                                                    {
+                                                        <h5 class="green">@Model.ProjectPqDetail.Category</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- <div class="col-sm-8"> -->
+                                    <!-- <div class="flex"> -->
+                                    <!-- <ul class="list-inline count2"> -->
+                                    <!-- <li> -->
+                                    <!-- <h3>PQ0001234</h3> -->
+                                    <!-- <span>PQ reference number</span> -->
+                                    <!-- </li> -->
+                                    <!-- <li> -->
+                                    <!-- <h3>ADREF323245</h3> -->
+                                    <!-- <span>Addendum Ref No.</span> -->
+                                    <!-- </li> -->
+                                    <!-- </ul> -->
+                                    <!-- </div> -->
+                                    <!-- </div> -->
+
+                                </div>
+                                <div class="x_panel">
+                                    <div class="x_title">
+                                        <h2><small><strong>Applicants</strong></small></h2>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="x_content">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Name</th>
+                                                    <th>Organization</th>
+                                                    <!--<th>Prequalified</th>-->
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @{
+                                                    int sno = 1;
+                                                }
+
+                                                @if (Model.Applicants == null || !Model.Applicants.Any())
+                                                {
+                                                    <tr>
+                                                        <td colspan="4">No records to show</td>
+                                                    </tr>
+                                                }
+                                                else
+                                                {
+                                                    foreach (var applicant in Model.Applicants ?? new List<AMP.ViewModels.Dashboad2.ApplicantsModel>())
+                                                    {
+                                                        <tr>
+                                                            @*<th scope="row">@applicant.ApplicantNo</th>*@
+                                                            <th scope="row">@sno</th>
+                                                            <td>@applicant.Name</td>
+                                                            <td>@applicant.Organization</td>
+                                                            <td>
+                                                                @*@if (applicant.PreQualified)
+                                                                    {
+                                                                       <button type="button" class="btn btn-xs btn-success"><i class="fa fa-check-square m-right-xs"></i></button>
+                                                                    }*@
+                                                                @applicant.Status
+                                                            </td>
+                                                        </tr>
+                                                        sno++;
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class='col-sm-2'><h5><strong>Status</strong></h5></div>
+                                        <div class='col-sm-8'>
+                                            <fieldset>
+                                                @if (!string.IsNullOrEmpty(Model.ProjectPqDetail.Status))
+                                                {
+                                                    <p class="help-block">@Model.ProjectPqDetail.Status</p>
+                                                }
+                                                else
+                                                {
+                                                    <h5> NA</h5>
+                                                }
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Signing Details</h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @*@if (user.IsInRole("DeskOfficer"))
+                                        {
+                                            <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edittender-modal-lg">Edit</button></li>
+                                        }*@
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Date of Contract Signing</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.SigningDate) ? "NA" : Model.SigningDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Effective Date of Contract</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.SignEffectiveDate) ? "NA" : Model.SignEffectiveDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Contract Scheduled Completion Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.ScheduledCompDate) ? "NA" : Model.ScheduledCompDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Contract Approval Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.ContractApprovalDate) ? "NA" : Model.ContractApprovalDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Revised Completion Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.RevisedCompletionDate) ? "NA" : Model.RevisedCompletionDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Actual Completion Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.ActualCompletionDate) ? "NA" : Model.ActualCompletionDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Terminal Date of Disbursement</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.TerminalDateOfDisbursement) ? "NA" : Model.TerminalDateOfDisbursement)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Date of receipt of Contract Agreement & Contract Inclusion Form by Exim Bank</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.DateOfReceiptOfContractByEximBank) ? "NA" : Model.DateOfReceiptOfContractByEximBank)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Tender Details <small>Dates decided by Project Authority.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edittender-modal-lg">Edit</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Date of Issue</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.TenderIssueDate) ? "NA" : Model.TenderIssueDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Last Date of Submission</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.TenderLastDate) ? "NA" : Model.TenderLastDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Funding Arrangement <small>Funds to be arranged collectively as follows.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-editfund-modal-lg">Edit</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-2'><h5>LOC</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(Model.LocAmount.HasValue ? "$ " + @Model.LocAmount.Value.ToString("0,0.00") : "NA")</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-2'><h5>Borrower Government</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(Model.BorowerGovt.HasValue ? "$ " + @Model.BorowerGovt.Value.ToString("0,0.00") : "NA")</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-2'><h5>Other Sources</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    @*@(Model.OtherSources.HasValue ? string.Format("$ {0:n0}", Model.OtherSources.Value) : "-")*@
+                                                    <h5 class="green">@(Model.OtherSources.HasValue ? "$ " + @Model.OtherSources.Value.ToString("0,0.00") : "NA")</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Borrower Confirmation / Statutory Approvals as per Contract Approval Letter</h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addrespon-modal-lg">Add Responsibility</button></li>
+                                    }
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Responsibility</th>
+                                            <th>Authority</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int res = 1; }
+                                        @if (Model.Responsibility == null || !Model.Responsibility.Any())
+                                        {
+                                            <tr>
+                                                <td rowspan="3">
+                                                    No records to show.
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.Responsibility ?? new List<AMP.ViewModels.Dashboad2.ResponsibilityModel>())
+                                            {
+                                                <tr>
+                                                    <th scope="row">@res</th>
+                                                    <td>@record.Responsiblity</td>
+                                                    <td>@record.Authority</td>
+                                                </tr>
+                                                { res += 1; }
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Contract Guarantees <small>Guarantees and Expiry Dates.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-guarantees-modal-lg">Edit</button></li>
+                                    }
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="x_panel">
+                                            <div class="x_title"><h2>Advance Payment <small>Guarantee</small></h2><div class="clearfix"></div></div><div class="x_content">
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Amount</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">@string.Format("$ {0:n2}", Model.AdvPmtGrntAmount)</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Expiry Date</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">@(string.IsNullOrEmpty(Model.AdvPmtGrntExpiry) ? "NA" : Model.AdvPmtGrntExpiry)</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="x_panel">
+                                            <div class="x_title"><h2>Performance Bank <small>Guarantee</small></h2><div class="clearfix"></div></div><div class="x_content">
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Amount</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">@string.Format("$ {0:n2}", Model.PerBankGrntAmount)</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Expiry Date</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">@(string.IsNullOrEmpty(Model.PerBankGrntExpiry) ? "NA" : Model.PerBankGrntExpiry)</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="x_panel">
+                                            <div class="x_title"><h2>Other <small>Guarantees</small></h2><div class="clearfix"></div></div><div class="x_content">
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Amount</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">$ @Model.OtherGrntAmount.ToString("0,0.00")</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class='col-sm-6'><h5>Expiry Date</h5></div>
+                                                    <div class='col-sm-6'>
+                                                        <fieldset>
+                                                            <h5 class="green">@(string.IsNullOrEmpty(Model.OtherGrntExpiry) ? "NA" : Model.OtherGrntExpiry)</h5>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(Model.GuaranteeNote))
+                                {
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="x_panel">
+                                                <div class="row">
+                                                    @Html.Raw(Model.GuaranteeNote)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Payment Terms <small>Payments by Milestone.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-danger" onclick="OpenPayment()">Add</button></li>
+                                    }
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Milestone</th>
+                                            <th>Percentage</th>
+                                            <th>Amount</th>
+                                            <th>Note</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.PaymentTerms == null || !Model.PaymentTerms.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="6">
+                                                    No records to show
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.PaymentTerms ?? new List<AMP.ViewModels.Dashboad2.PaymentTermsModel>())
+                                            {
+                                                <tr>
+                                                    <th scope="row">@record.Sequence</th>
+                                                    <td>@record.Milestone</td>
+                                                    <td>@(record.Percentage.HasValue ? (record.Percentage.ToString() + "%") : "")</td>
+                                                    <td>@(record.Amount.HasValue ? record.Amount.Value.ToString("0,0.00") : "NA")</td>
+                                                    <td>@(string.IsNullOrEmpty(record.Note) ? "NA" : record.Note)</td>
+                                                    <td><button class="btn btn-xs btn-warning" type="button" onclick="payment(@record.Id,@record.Sequence,'@record.Milestone','@record.Percentage','@record.Amount','@record.Note')">Edit</button></td>
+                                                </tr>
+
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Indian Content Requirement <small>Content Procurement Requirements are as follows.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addrequirement-modal-lg">Add Requirement</button></li>
+                                    }
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th width="10%">Value</th>
+                                            <th>Percentage</th>
+                                            <th>Exempt</th>
+                                            <th>Revised Requirement</th>
+                                            <th>MEA Approval Ref. No.</th>
+                                            <th>MEA Approval Date</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Content == null || !Model.Content.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="8">
+                                                    No records to show.
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.Content ?? new List<AMP.ViewModels.Dashboad2.ContentRequirementModel>())
+                                            {
+                                                <tr>
+                                                    <th>@(string.IsNullOrEmpty(record.Type) ? "NA" : record.Type)</th>
+                                                    <td>@record.Value.ToString("0.00")</td>
+                                                    <td>@record.Percentage%</td>
+                                                    <td>
+                                                        @if (record.isExempt)
+                                                        {
+                                                            <button type="button" class="btn btn-xs btn-success"><i class="fa fa-check-square m-right-xs"></i></button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>NA</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (!string.IsNullOrEmpty(record.RevisedRequirement))
+                                                        {
+                                                            <text>@record.RevisedRequirement%</text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>NA</span>
+                                                        }
+                                                    </td>
+                                                    <td>@(string.IsNullOrEmpty(record.MEAApprovalRefNo) ? "NA" : record.MEAApprovalRefNo)</td>
+                                                    <td>@(string.IsNullOrEmpty(record.MEAApprovalDate) ? "NA" : record.MEAApprovalDate)</td>
+                                                    <td>@(string.IsNullOrEmpty(record.Remarks) ? "NA" : record.Remarks)</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Letter of Credit<small>Original and Revisions.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addlc-modal-lg">Add Revision</button></li>
+                                    }
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Amendment</th>
+                                            <th>LC number</th>
+                                            <th>Beneficiary</th>
+                                            <th width="10%">Amount</th>
+                                            <th>Opening Date</th>
+                                            <th>Issuing Bank</th>
+                                            <th>Last Date of Shipment</th>
+                                            <th>Expiry Date</th>
+                                            <th width="10%">Transferable Amount</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int Lc = 1; }
+                                        @if (Model.LetterOfCredits == null || !Model.LetterOfCredits.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="10">
+                                                    <span>No record to show.</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.LetterOfCredits ?? new List<AMP.ViewModels.Dashboad2.CreditLetterModel>())
+                                            {
+                                                <tr>
+                                                    <th scope="row">@Lc</th>
+                                                    <td>@record.LCNumber</td>
+                                                    <td>@record.Beneficiary</td>
+                                                    <td align="right">@(record.Amount.HasValue ? record.Amount.Value.ToString("0,0.00") : "-")</td>
+                                                    <td>@(record.OpeningDate)</td>
+                                                    <td>@record.IssuingBank</td>
+                                                    <td>@(record.LastDateofShipment)</td>
+                                                    <td>@(record.ExpiryDate)</td>
+                                                    <td align="right">@(record.TransferableAmount.HasValue ? record.TransferableAmount.Value.ToString("0,0.00") : "-")</td>
+                                                    <td>@record.LCNote</td>
+                                                </tr>
+                                                { Lc += 1; }
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Contract Closure <small>Important Dates.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-contclos-modal-lg">Edit</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                    <li>
+                                        <a class="close-link"><i class="fa fa-close"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Provisional Acceptance Certificate (PAC) Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.PACDate) ? "NA" : Model.PACDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Defects Liability period end date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.DefectsLiabilityEndDate) ? "NA" : Model.DefectsLiabilityEndDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Final Acceptance Certificate (FAC) Date</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.FACDate) ? "NA" : Model.FACDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                            <div class='col-sm-4'><h5>Date of completion report covering socio-economic benefits of the project</h5></div>
+                                            <div class='col-sm-2'>
+                                                <fieldset>
+                                                    <h5 class="green">@(string.IsNullOrEmpty(Model.CompReportDate) ? "NA" : Model.CompReportDate)</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+
+                        @*<div class="x_panel">
+                                <div class="x_title">
+                                    <h2>LOC List <small>The following LOCs are leveraged in this Contract</small></h2>
+                                    <ul class="nav navbar-right panel_toolbox">
+                                        @if (user.IsInRole("DeskOfficer"))
+                                        {
+                                            <li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addloc-modal-lg">Add LOC</button></li>
+                                        }
+                                        <li>
+                                            <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                        </li>
+                                        <li>
+                                            <a class="close-link"><i class="fa fa-close"></i></a>
+                                        </li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>LOC</th>
+                                                <th>Country</th>
+                                                <th>Added</th>
+                                                <th>CIF</th>
+                                                <th>Classification</th>
+                                                <th>Account</th>
+                                                <th width="10%">Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{ int l = 1; }
+                                            @foreach (var record in Model.Locs ?? new List<AMP.ViewModels.Dashboad2.LocMapModel>())
+                                            {
+                                                <tr>
+                                                    <th scope="row">@l</th>
+                                                    <td>@record.Loc.LOCNumber</td>
+                                                    <td>@record.Loc.CountryName</td>
+                                                    <td>@record.DateAdded.ToString("dd MM yyyy")</td>
+                                                    <td>@record.Loc.CIF</td>
+                                                    <td>@record.Loc.Classification</td>
+                                                    <td>@record.Loc.LOCAccountNumber</td>
+                                                    <td align="right">$ @record.Value</td>
+                                                </tr>
+                                                { l += 1; }
+                                            }
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>*@
+                    </div>
+
+                    <!-- start project-detail sidebar -->
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+
+                        <section class="panel">
+
+                            <div class="x_title">
+                                <h2>@Model.ContractId</h2>
+                                <a href="#" id="editContractNumBtn" style="float:right">
+                                    <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                </a>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="panel-body">
+                                <h3 class="green">@Model.ContractorName</h3>
+
+                                <p>@Model.Description</p>
+                                <br />
+                                <div class="project_detail">
+                                    <p class="title">Contract Duration</p>
+
+                                    <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                        @if (string.IsNullOrEmpty(Model.ContractEnd))
+                                        {
+                                            <span class="green">@(string.IsNullOrEmpty(Model.ContractStart) ? "NA" : Model.ContractStart)</span>
+                                        }
+                                        else if (!string.IsNullOrEmpty(Model.ContractStart))
+                                        {
+                                            <span class="green">@(Model.ContractStart) to @(Model.ContractEnd)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="green">NA</span>
+                                        }
+                                    </div>
+
+                                    @*<br />
+                                        <p class="title">Contract Approval Date</p>
+                                        <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                            <span class="green">@(Model.ContractApprovalDate)</span>
+                                        </div>
+                                        <p></p>
+
+                                        <p class="title">Contract Scheduled Completion Date</p>
+                                        <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                            <span class="green">@(Model.ScheduledCompDate)</span>
+                                        </div>
+                                        <p></p>
+
+                                        <p class="title">Revised Completion Date</p>
+                                        <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                            <span class="green">@(Model.RevisedCompletionDate)</span>
+                                        </div>
+                                        <p></p>
+
+                                        <p class="title">Actual Completion Date</p>
+                                        <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                            <span class="green">@(Model.ActualCompletionDate)</span>
+                                        </div>
+                                        <p></p>
+
+                                        <p class="title">Terminal Date of Disbursement</p>
+                                        <div class="pull-right" style="margin-bottom:10px; background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #E6E9ED; width:100%;">
+                                            <span class="green">@(Model.TerminalDateOfDisbursement)</span>
+                                        </div>*@
+                                    <p></p>
+
+                                    <p class="title">Project</p>
+                                    <p><a class="green" href="@Url.Action("Edit","Projects",new { Id = Model.Project.Id})"> @Model.Project.Code - @Model.Project.Name</a></p>
+                                    @*<p>@Model.Project.Code - @Model.Project.Name</p>*@
+                                    <p class="title">Sector</p>
+                                    @if (string.IsNullOrEmpty(Model.Project.Sector))
+                                    {
+                                        <p class="title">NA</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="title"><i class="fa "></i> @Model.Project.Sector</p>
+                                        <p>@Model.Project.SubSectorName</p>
+                                    }
+
+
+                                    <p class="title">Contract CIF</p>
+                                    <p class="green">@(string.IsNullOrEmpty(Model.ContractorCIF) ? "NA" : Model.ContractorCIF)</p>
+
+                                    <p class="title">BCD Account</p>
+                                    <p><a class="green">@(string.IsNullOrEmpty(Model.CGSId) ? "NA" : Model.CGSId)</a></p>
+                                    @*<p class="title">Team Details</p>
+                                        <a class="green" href="#" data-toggle="modal" data-target=".bs-viewcontact-modal-lg">Nicole Pearson</a></br>
+                                        <a class="green" href="#" data-toggle="modal" data-target=".bs-viewcontact-modal-lg">Sanjay Das</a>*@
+                                </div>
+
+                                <br />
+                                <p class="title">Contract Files</p>
+                                <ul class="list-unstyled project_files">
+                                    @foreach (var file in Model.Files ?? new List<AMP.Models.TBL_Files>())
+                                    {
+                                        <li>
+                                            @if (user.IsInRole("DeskOfficer"))
+                                            {
+                                                <a href="@file.Src"><i class="fa fa-file"></i> @file.DisplayName</a>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa fa-file"></i> @file.DisplayName
+                                            }
+
+                                        </li>
+                                    }
+                                    @if (Model.Files == null || !Model.Files.Any())
+                                    {
+                                        <p>No files uploaded yet.</p>
+                                    }
+                                </ul>
+                                <br />
+                                @if (user.IsInRole("DeskOfficer"))
+                                {
+                                    <div class="text-center mtop20">
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-files-modal-lg">Add files</a>
+                                    </div>
+                                }
+                            </div>
+
+                        </section>
+                        @if (!string.IsNullOrEmpty(Model.CNote))
+                        {
+                            <div>
+                                <div class="x_title">
+                                    <h2>Note</h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <ul class="list-unstyled scroll-view">
+
+                                    <li class="media event">
+                                        <div class="media-body">
+                                            <p>@Model.CNote</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        <div>
+                            <div class="x_title">
+                                <h2>Recent Activity</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <ul class="list-unstyled top_profiles scroll-view">
+                                @if (Model.Activities == null || !Model.Activities.Any())
+                                {
+                                    <li>No recent activity to show.</li>
+                                }
+                                else
+                                {
+                                    foreach (var activity in Model.Activities ?? new List<AMP.ViewModels.Dashboad2.ActivityModel>())
+                                    {
+                                        <li class="media event">
+                                            <a class="pull-left">
+                                                @if (string.IsNullOrWhiteSpace(activity.Image))
+                                                {
+                                                    <img src="~/Content/localImages/img.jpg" width="50" height="50" class="img-circle" alt="Avatar" />
+                                                }
+                                                else
+                                                {
+                                                    <img src="@activity.Image" width="50" height="50" class="img-circle" alt="Avatar" />
+                                                }
+                                            </a>
+                                            <div class="media-body">
+                                                <a class="title" href="#">@activity.Name</a>
+                                                <p><strong></strong> @activity.Description </p>
+                                                @if (!string.IsNullOrWhiteSpace(activity.AttachmentURL))
+                                                {
+                                                    <p class="url">
+                                                        <span class="fs1 text-info" aria-hidden="true" data-icon=""></span>
+                                                        <a href="@activity.AttachmentURL"><i class="fa fa-paperclip"></i> @activity.AttachmentName </a>
+                                                    </p>
+                                                }
+                                                <p>
+                                                    <small>@activity.LogTime</small>
+                                                </p>
+                                            </div>
+                                        </li>
+
+                                    }
+                                }
+
+                            </ul>
+                        </div>
+                        <!-- end of user messages -->
+                    </div>
+                    <!-- end project-detail sidebar -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-edit-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("EditContract", "Contract", FormMethod.Post))
+                {
+                    @Html.HiddenFor(e => e.Id)
+                    @Html.HiddenFor(e => e.PQId)
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">CIF : <span class="red">*</span></label>
+                                        @Html.EditorFor(e => e.ContractorCIF, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "ContractName", @placeholder = "Contractor CIF", required = "required" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Contract Value : <span class="red">*</span></label>
+                                        @Html.EditorFor(e => e.EstimateValue, new { htmlAttributes = new { type = "number", @class = "form-control col-md-7 col-xs-12", @id = "ContractName", @placeholder = "Value", required = "required", step = ".01" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">BCD Account : <span class="red">*</span></label>
+                                        @Html.EditorFor(e => e.CGSId, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "CGSId", @placeholder = "BCD Account", required = "required" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-loc-categ">Contract Type:</label>
+                                        @Html.DropDownListFor(m => m.ContractType, Model.ContractTypes, new { @class = "form-control", @id = "conttype" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Contractor Name : <span class="red">*</span></label>
+                                        @Html.EditorFor(e => e.ContractorName, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "ContractName", @placeholder = "Contractor Name", required = "required" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Date of Contract Signing : </label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="SigningDate" name="SigningDate" class="form-control has-feedback-left" placeholder="Signing Date" value="@(Model.SigningDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Effective Date of Contract : </label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="SignEffectiveDate" name="SignEffectiveDate" class="form-control has-feedback-left" placeholder="Effective Date" value="@(Model.SignEffectiveDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Contract Approval Date : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ContractApprovalDate" name="ContractApprovalDate" required="required" class="form-control has-feedback-left" placeholder="Contract Approval Date" value="@(Model.ContractApprovalDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<div class="col-sm-6">
+                                    <div class="form-group">
+                                        <div>
+                                            <label for="country-cif">Start date of Contract : <span class="red">*</span></label>
+                                            <fieldset>
+                                                <div class="control-group">
+                                                    <div class="controls">
+                                                        <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                            <input type="text" id="ContractStart" name="ContractStart" required="required" class="form-control has-feedback-left" placeholder="Start Date" value="@(Model.ContractStart)">
+                                                            <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                            <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+
+                        @*<div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <div>
+                                            <label for="country-risk-categ">End date of Contract : <span class="red">*</span></label>
+                                            <fieldset>
+                                                <div class="control-group">
+                                                    <div class="controls">
+                                                        <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                            <input type="text" id="ContractEnd" name="ContractEnd" required="required" class="form-control has-feedback-left" placeholder="End Date" value="@(Model.ContractEnd)">
+                                                            <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                            <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <div>
+                                            <label for="country-cif">Scheduled completion date of Contract</label>
+                                            <fieldset>
+                                                <div class="control-group">
+                                                    <div class="controls">
+                                                        <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                            <input type="text" id="ContractScheduledDate" name="ScheduledCompDate" class="form-control has-feedback-left" value="@Model.ScheduledCompDate" />
+                                                            <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                            <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>*@
+
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Revised Completion Date : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="RevisedCompletionDate" name="RevisedCompletionDate" required="required" class="form-control has-feedback-left" placeholder="Revised Completion Date" value="@(Model.RevisedCompletionDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Actual Completion Date : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ActualCompletionDate" name="ActualCompletionDate" required="required" class="form-control has-feedback-left" placeholder="Actual Completion Date" value="@(Model.ActualCompletionDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+
+                                        <label for="country-risk-categ">Terminal Date of Disbursement : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="TerminalDateOfDisbursement" name="TerminalDateOfDisbursement" required="required" class="form-control has-feedback-left" placeholder="Terminal Date Of Disbursement" value="@(Model.TerminalDateOfDisbursement)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Date of receipt of Contract Agreement & Contract Inclusion Form by Exim Bank : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="DateOfReceiptOfContractByEximBank" name="DateOfReceiptOfContractByEximBank" required="required" class="form-control has-feedback-left" placeholder="Date Of Receipt Of Contract By Exim Bank" value="@Model.DateOfReceiptOfContractByEximBank">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <label> Duration:</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Years <span class="red"></span></label>
+                                        @Html.EditorFor(e => e.DurationYear, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationYear", @placeholder = "Year" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Months<span class="red"></span></label>
+                                        @Html.EditorFor(e => e.DurationMonth, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationMonth", @placeholder = "Month" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Days<span class="red"></span></label>
+                                        @Html.EditorFor(e => e.DurationDay, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationDay", @placeholder = "Day" } })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Note</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <textarea class="form-control" id="CNote" name="CNote" rows="3" placeholder="Note or Remarks">@Model.CNote</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-edittender-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdateTender", "Contract", FormMethod.Post))
+                {
+                    @Html.HiddenFor(e => e.Id)
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Date of Issue : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="TenderIssueDate" name="TenderIssueDate" required="required" class="form-control has-feedback-left" placeholder="Date of Issue" value="@(Model.TenderIssueDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Last Date of Submission : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="TenderLastDate" name="TenderLastDate" required="required" class="form-control has-feedback-left" placeholder="Last Date" value="@(Model.TenderLastDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-editfund-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdateFunding", "Contract", FormMethod.Post))
+                {
+                    @Html.HiddenFor(e => e.Id)
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">LOC Amount:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-12 xdisplay_inputx form-group has-feedback">
+                                                        @Html.EditorFor(e => e.LocAmount, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "LocAmount", @placeholder = "Loc Amount" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Govt Amount:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-12 xdisplay_inputx form-group has-feedback">
+                                                        @Html.EditorFor(e => e.BorowerGovt, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "BorowerGovt", @placeholder = "Govt Amount" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Other</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-12 xdisplay_inputx form-group has-feedback">
+                                                        @Html.EditorFor(e => e.OtherSources, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "OtherSources", @placeholder = "Other Sources" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addrespon-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("AddResponsibilty", "Contract", FormMethod.Post))
+                {
+                    <input type="hidden" value="@Model.Id" name="ContractId" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Responsibility : <span class="red">*</span></label>
+                                        <input type="text" id="Responsiblity" name="Responsiblity" required="required" class="form-control col-md-7 col-xs-12" placeholder="Responsiblity">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Authority : <span class="red">*</span></label>
+                                        <input type="text" id="Authority" name="Authority" required="required" class="form-control col-md-7 col-xs-12" placeholder="Authority">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-guarantees-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdateGurantee", "Contract", FormMethod.Post))
+                {
+                    @Html.HiddenFor(e => e.Id)
+                    <div class="">
+                        <div class="row">
+                            <h5>Advance Payment </h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Amount : <span class="red">*</span></label>
+                                        @*<input type="text" id="AdvPmtGrntAmount" name="AdvPmtGrntAmount" required="required" class="form-control col-md-7 col-xs-12" placeholder="Amount">*@
+                                        @Html.EditorFor(e => e.AdvPmtGrntAmount, new { htmlAttributes = new { type = "number", step = "0.01", @class = "form-control has-feedback-left", @id = "AdvPmtGrntAmount", @placeholder = "Amount" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Expiry : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="AdvPmtGrntExpiry" name="AdvPmtGrntExpiry" required="required" class="form-control has-feedback-left" placeholder="Expiry" value="@(Model.AdvPmtGrntExpiry)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <h5>Performance Bank </h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Amount : <span class="red">*</span></label>
+                                        @*<input type="text" id="PerBankGrntAmount" name="PerBankGrntAmount" required="required" class="form-control col-md-7 col-xs-12" placeholder="Amount">*@
+                                        @Html.EditorFor(e => e.PerBankGrntAmount, new { htmlAttributes = new { type = "number", step = "0.01", @class = "form-control has-feedback-left", @id = "PerBankGrntAmount", @placeholder = "Amount" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Expiry : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="PerBankGrntExpiry" name="PerBankGrntExpiry" required="required" class="form-control has-feedback-left" placeholder="Expiry" value="@(Model.PerBankGrntExpiry)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <h5>Other </h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Amount : </label>
+                                        @*<input type="text" id="OtherGrntAmount" name="OtherGrntAmount" required="required" class="form-control col-md-7 col-xs-12" placeholder="Amount">*@
+                                        @Html.EditorFor(e => e.OtherGrntAmount, new { htmlAttributes = new { type = "number", step = "0.01", @class = "form-control has-feedback-left", @id = "OtherGrntAmount", @placeholder = "Amount" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Expiry : </label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="OtherGrntExpiry" name="OtherGrntExpiry" class="form-control has-feedback-left" placeholder="Expiry" value="@(Model.OtherGrntExpiry)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <h5>Guarantee Note </h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Note : </label>
+                                        <input type="text" id="GuaranteeNote" name="GuaranteeNote" class="form-control col-md-7 col-xs-12" placeholder="Note" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-paymentt-modal-lg" id="paymentTerms" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Payment Terms</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdatePayment", "Contract", FormMethod.Post))
+                {
+
+                    <input type="hidden" name="Id" id="PaymentTermId" />
+                    <input type="hidden" name="ContractId" id="ContractId" value="@Model.Id" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Sequence : <span class="red">*</span></label>
+                                        <input type="number" id="Sequence" name="Sequence" required="required" class="form-control col-md-7 col-xs-12" placeholder="Sequence" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Milestone : <span class="red">*</span></label>
+                                        <input type="text" id="Milestone" name="Milestone" required="required" class="form-control col-md-7 col-xs-12" placeholder="Milestone" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Percentage : </label>
+                                        <input type="number" step="0.01" id="Percentage" name="Percentage" class="form-control col-md-7 col-xs-12" placeholder="Percentage" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Amount : </label>
+                                        <input type="number" step="0.01" id="Amount" name="Amount" class="form-control col-md-7 col-xs-12" placeholder="Amount" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Note:</label>
+                                        <input type="text" id="Note" name="Note" class="form-control col-md-7 col-xs-12" placeholder="Note" />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addrequirement-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("AddContent", "Contract", FormMethod.Post))
+                {
+                    <input type="hidden" value="@Model.Id" name="ContractId" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Value : <span class="red">*</span></label>
+                                        <input type="number" step="0.01" id="Value" name="Value" required="required" class="form-control col-md-7 col-xs-12" placeholder="Value">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Percentage : <span class="red">*</span></label>
+                                        <input type="number" step="0.01" id="Percentage" name="Percentage" required="required" placeholder="Percentage" class="form-control col-md-7 col-xs-12">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Revised Requirement:</label>
+                                        <input type="number" step="0.01" id="RevisedRequirement" name="RevisedRequirement" class="form-control col-md-7 col-xs-12" placeholder="Revised Requirement">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">MEA Approval Ref No :</label>
+                                        <input type="text" id="MEAApprovalRefNo" name="MEAApprovalRefNo" class="form-control col-md-7 col-xs-12" placeholder="MEA Approval Ref No">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Exempt : <span class="red">*</span></label>
+                                        <input type="checkbox" id="isExempt" name="isExempt" class="icheckbox_square-green">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">MEA Approval Date : </label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="MEAApprovalDate" name="MEAApprovalDate" class="form-control has-feedback-left" placeholder="MEA Approval Date">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Remarks:</label>
+                                        <input type="text" id="Remarks" name="Remarks" class="form-control col-md-7 col-xs-12" placeholder="Remarks">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+
+                            </div>
+                            <div class="col-sm-4">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addlc-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("AddLC", "Contract", FormMethod.Post))
+                {
+                    <input type="hidden" value="@Model.Id" name="ContractId" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">LCNumber : <span class="red">*</span></label>
+                                        <input type="text" id="LCNumber" name="LCNumber" required="required" class="form-control col-md-7 col-xs-12" placeholder="LC Number">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Beneficiary : <span class="red">*</span></label>
+                                        <input type="text" id="Beneficiary" name="Beneficiary" required="required" class="form-control col-md-7 col-xs-12" placeholder="Beneficiary">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Amount : <span class="red">*</span></label>
+                                        <input type="number" id="Amount" name="Amount" required="required" class="form-control col-md-7 col-xs-12" placeholder="Amount">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Issuing Bank : <span class="red">*</span></label>
+                                        <input type="text" id="IssuingBank" name="IssuingBank" required="required" class="form-control col-md-7 col-xs-12" placeholder="Issuing Bank">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Transferable Amount : <span class="red">*</span></label>
+                                        <input type="number" id="TransferableAmount" name="TransferableAmount" required="required" class="form-control col-md-7 col-xs-12" placeholder="Transferable Amount">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Opening Date : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="OpeningDate" name="OpeningDate" required="required" class="form-control has-feedback-left" placeholder="Opening Date">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Last Date of Shipment : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="LastDateofShipment" name="LastDateofShipment" required="required" class="form-control has-feedback-left" placeholder="Last Date of Shipment">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Expiry Date : <span class="red">*</span></label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ExpiryDate" name="ExpiryDate" required="required" class="form-control has-feedback-left" placeholder="Expiry Date">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Note :</label>
+                                        <input type="text" id="LCNote" name="LCNote" class="form-control col-md-7 col-xs-12" placeholder="Note" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-contclos-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdateClosure", "Contract", FormMethod.Post))
+                {
+                    @Html.HiddenFor(e => e.Id)
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Provisional Acceptance Certificate (PAC) Date : <span class="red">*</span></label>
+
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @*<input type="text" class="form-control has-feedback-left" name="PACDate" id="PACDate" placeholder="PAC Date" aria-describedby="inputSuccess2Status2">*@
+                                                        <input type="text" id="PACDate" name="PACDate" required="required" class="form-control has-feedback-left" placeholder="PAC Date" value="@(Model.PACDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Defects Liability period end date : <span class="red">*</span></label>
+
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @*<input type="text" class="form-control has-feedback-left" name="DefectsLiabilityEndDate" id="DefectsLiabilityEndDate" placeholder="Defects Liability End Date" aria-describedby="inputSuccess2Status2">*@
+                                                        <input type="text" id="DefectsLiabilityEndDate" name="DefectsLiabilityEndDate" required="required" class="form-control has-feedback-left" placeholder="Defects Liability End Date" value="@(Model.DefectsLiabilityEndDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Final Acceptance Certificate (FAC) Date : <span class="red">*</span></label>
+
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @*<input type="text" class="form-control has-feedback-left" name="FACDate" id="FACDate" placeholder="FAC Date" aria-describedby="inputSuccess2Status2">*@
+                                                        <input type="text" id="FACDate" name="FACDate" required="required" class="form-control has-feedback-left" placeholder="FAC Date" value="@(Model.FACDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Date of completion report covering socio-economic benefits of the project : <span class="red">*</span></label>
+
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        @*<input type="text" class="form-control has-feedback-left" name="CompReportDate" id="CompReportDate" placeholder="Comp Report Date" aria-describedby="inputSuccess2Status2">*@
+                                                        <input type="text" id="CompReportDate" name="CompReportDate" required="required" class="form-control has-feedback-left" placeholder="Comp Report Date" value="@(Model.CompReportDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-updatecontract-num-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Update Contract Number</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div>
+                                <label for="country-risk-categ">Contract Number</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <div>
+                                <input id="updContractId" type="hidden" name="projectId" value="@Model.Id" />
+                                <input id="updContractNumber" type="hidden" name="hidContractNumber" value="@Model.ContractId" />
+                                <input type="text" id="contractNumTxt" name="code" class="form-control col-md-7 col-xs-12" required value="@Model.ContractId">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div>
+                                <span class="text-success" id="codeSuccessUpdate"></span>
+                                <span class="text-danger" id="codeErrorUpdate"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateContractNumBtn">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addloc-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("AddLoc", "Contract", FormMethod.Post))
+                {
+                    <input type="hidden" value="@Model.Id" name="ContractId" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">LOC : <span class="red">*</span></label>
+                                        @Html.DropDownList("LocId", Model.LocNumbers, "Select LOC", new { @class = "form-control col-md-7 col-xs-12", @required = "required" })
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Beneficiary : <span class="red">*</span></label>
+                                        <input type="text" id="Value" name="Value" required="required" class="form-control col-md-7 col-xs-12" placeholder="Value">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-files-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add Contract Files</h4>
+            </div>
+
+            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+            @using (Html.BeginForm("AddContractFile", "Contract", FormMethod.Post, new { enctype = "multipart/form-data", id = "contract-file-upload" }))
+            {
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div>
+                                    <input type="file" name="ContractFile" id="contract-file" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:5px;">
+                            <div class='col-sm-12'>
+                                <label class="alert bg-green" style="padding:2px;margin-bottom:0px;"><b>Supported File Types :</b>Pdf, Word, Excel, PNG, JPG </label>
+                                <br />
+                                <label class="alert alert-warning" style="padding:2px;margin-top:5px; margin-bottom:0px;">File size should be less than 5MB.</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+        $('#TenderIssueDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#TenderLastDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#AdvPmtGrntExpiry').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#PerBankGrntExpiry').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#OtherGrntExpiry').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#MEAApprovalDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#OpeningDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#LastDateofShipment').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ExpiryDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+
+        $('#PACDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#DefectsLiabilityEndDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#FACDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#CompReportDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#ContractStart').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#ContractEnd').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ContractScheduledDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#ContractApprovalDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#RevisedCompletionDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#ActualCompletionDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#TerminalDateOfDisbursement').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#DateOfReceiptOfContractByEximBank').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#SigningDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#SignEffectiveDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+    </script>
+
+}

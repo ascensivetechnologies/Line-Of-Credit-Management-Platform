@@ -1,0 +1,197 @@
+﻿@model GridModel<ReportingManager>
+@using AMP.ViewModels.Dashboad2
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+@using (Html.BeginForm("StandardReport", "Report", FormMethod.Get, new { id="gridForm" }))
+{
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Reports <small></small></h3>
+            </div>
+            <div class="title_right">
+                <div class="pull-right">
+                    <div class="col-md-2 col-sm-2 col-xs-12 col-md-offset-5 col-sm-offset-5" >
+                       
+                    </div>
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="Search" placeholder="Search for..." value="@Model.SearchText">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">Go!</button>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <p>List of reports.</p>
+                            <!-- start country list -->
+                            <div class="table-responsive">
+                                <table class="table table-striped jambo_table bulk_action">
+                                    <thead>
+                                        <tr class="headings">
+
+                                            <th class="column-title">Name </th>
+                                            <th class="column-title" colspan="2">Action </th>
+                                            <th class="bulk-actions" colspan="7">
+                                                <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var record in Model.Records ?? new List<ReportingManager>())
+        {
+        <tr class="odd pointer">
+            <td class=" ">@record.Name</td>
+            <td class="a-right a-right">
+                @if (record.ProcedureName == "standard_report_Repaid_LOCs")
+                {
+                    <a href="@Url.Action("RepaidLOCs", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Completed_Projects")
+                {
+                    <a href="@Url.Action("CompletedProjects", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_GOI_Guarantees_Issued")
+                {
+                    <a href="@Url.Action("StandardGOIGuarantees", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_LOC_Commitments")
+                {
+                    <a href="@Url.Action("LOCCommitments", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_LOC_Details")
+                {
+                    <a href="@Url.Action("StandardLOCDetails", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Operative_LOCs")
+                {
+                    <a href="@Url.Action("OperativeLOCs", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_PQ_Process_Status")
+                {
+                    <a href="@Url.Action("PQProcessStatus", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Project_Details")
+                {
+                    <a href="@Url.Action("ProjectDetails", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Region_wise_LOC_Details")
+                {
+                    <a href="@Url.Action("StandardRegionWiseLocReport", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Contract_Details")
+                {
+                    <a href="@Url.Action("ContractDetails", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Unutilized_Contracts")
+                {
+                    <a href="@Url.Action("UnutilizedContracts", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Unutilized_Sanctions")
+                {
+                    <a href="@Url.Action("UnutilizedSanctions", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Year_Wise_Disbursements")
+                {
+                    <a href="@Url.Action("YearWiseDisbursements", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+                @if (record.ProcedureName == "standard_report_Monthly_Status")
+                {
+                    <a href="@Url.Action("standardreportMonthlyStatus", "Report", new { proc = record.ProcedureName })">
+                        <span class="glyphicon glyphicon-play mybtn-blue" aria-hidden="true"></span>
+                    </a>
+                }
+
+
+
+            </td>
+            @*<td class="a-right a-right">
+                <a  href="@Url.Action("delReport","Report", new { proc = record.ProcedureName })" >
+                    <span id="delReport" class="glyphicon glyphicon-remove mybtn-red form-delete" aria-hidden="true" />
+                </a>
+            </td>*@
+        </tr>
+        }
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="dataTables_info" role="status">@Model.Display</div>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="PageNo" id="PageNo" value="@Model.PageNo" />
+                                    <div class="pull-right" style="margin-top:5px;">
+                                        <span>Page Size</span>
+                                        @Html.DropDownListFor(x => x.PageSize, Model.PageSizes, new { @name = "PageSize", onchange = "this.form.submit()" })
+                                    </div>
+                                    <ul id="pagination-exim" class="pagination-sm pull-right" style="margin:0px; margin-right:10px;"></ul>
+                                </div>
+                            </div>
+                            <!-- end country list -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<script src="~/Scripts/jquery.twbsPagination.min.js"></script>
+<script>
+    //const ChangePage = function (pageNumber) {
+    //    $("#ddlPages").val(pageNumber);
+    //    $("#gridForm").submit();
+    //    }
+    $('#pagination-exim').twbsPagination({
+        totalPages: @Model.Pages.Count,
+        visiblePages: 10,
+        startPage: @Model.PageNo,
+        initiateStartPageClick: false,
+        onPageClick: function (event, page) {
+            $("#PageNo").val(page);
+            $("#gridForm").submit();
+        }
+    });
+</script>
+

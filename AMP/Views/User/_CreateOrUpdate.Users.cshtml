@@ -1,0 +1,325 @@
+﻿@model AMP.ViewModels.Dashboad2.UsersModel
+@using System.Web.Mvc
+<div class="">
+    <div class="page-title">
+        <div class="title_left">
+            <h3>Terms Details <small></small></h3>
+        </div>
+
+    </div>
+    <div class="clearfix"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <p>User Details!</p>
+                        <!-- start project list -->
+
+                        @using (Html.BeginForm(null,null,FormMethod.Post, new { enctype = "multipart/form-data" }))
+                        {
+                            <div class="x_content">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-risk-categ">User Name :</label>
+                                                    @Html.EditorFor(e => e.Username, new { htmlAttributes = new {  @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "User Name " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-loc-categ">Display Name :</label>
+                                                    @Html.EditorFor(e => e.DisplayName, new { htmlAttributes = new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Display Name " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-loc-categ">Department :</label>
+                                                    @Html.EditorFor(e => e.Department, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Department " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Email :</label>
+                                                    @Html.EditorFor(e => e.Email, new { htmlAttributes = new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Email" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-commitment-fee">Employee No:</label>
+                                                    @Html.EditorFor(e => e.EmployeeNo, new { htmlAttributes = new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Employee No" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-management-fee">Roles: </label>
+                                                    @Html.ListBoxFor(e => e.Roles, new MultiSelectList(Model.AllRoles, "Value", "Text"))
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="x_content">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                @if(Model.ContactImage != null)
+                                                {
+                                                    <img src="@string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Model.ContactImage))" alt="contact image"/>
+                                                }
+                                                <div>
+                                                    <input type="file" id="FileUpload1" />
+                                                    <br />
+                                                    <br />
+                                                    <table border="0" cellpadding="0" cellspacing="5">
+                                                        <tr>
+                                                            <td>
+                                                                <img id="Image1" src="" alt="" style="display: none" />
+                                                            </td>
+                                                            <td>
+                                                                <canvas id="canvas" height="5" width="5"></canvas>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <br />
+                                                    <input type="button" id="btnCrop" value="Crop" style="display: none" />
+                                                    <input type="submit" id="btnUpload" value="Upload" style="display: none" />
+                                                    <input type="hidden" name="imgX1" id="imgX1" />
+                                                    <input type="hidden" name="imgY1" id="imgY1" />
+                                                    <input type="hidden" name="imgWidth" id="imgWidth" />
+                                                    <input type="hidden" name="imgHeight" id="imgHeight" />
+                                                    <input type="hidden" name="imgCropped" id="imgCropped" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-risk-categ">Name :</label>
+                                                    @Html.EditorFor(e => e.Name, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Contact Name " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-loc-categ">Designation :</label>
+                                                    @Html.EditorFor(e => e.Designation, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Designation " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-loc-categ">Organization :</label>
+                                                    @Html.EditorFor(e => e.Organization, new { htmlAttributes = new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Organization " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Mobile Number :</label>
+                                                    @Html.EditorFor(e => e.MobileNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Mobile Number" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-commitment-fee">Landline:</label>
+                                                    @Html.EditorFor(e => e.Landline, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Landline" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-management-fee">Fax Number: </label>
+                                                    @Html.EditorFor(e => e.FaxNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Fax Number" } })
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Address Line 1 :</label>
+                                                    @Html.EditorFor(e => e.AddressLine1, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Address Line" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-commitment-fee">Address Line 2 :</label>
+                                                    @Html.EditorFor(e => e.AddressLine2, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Address Line 2" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-management-fee">City: </label>
+                                                    @Html.EditorFor(e => e.City, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "City" } })
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Country Name :</label>
+                                                    @Html.DropDownListFor(e => e.CountryId,Model.Countries ,new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Country" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-commitment-fee">Pincode :</label>
+                                                    @Html.EditorFor(e => e.Pincode, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @placeholder = "Pincode" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-management-fee">Contact Type: </label>
+                                                    @Html.DropDownListFor(e => e.ContactTypeId, Model.ContactTypes, new { @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Contact Type" })
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                                <div class="ln_solid"></div>
+                                <div class="form-group">
+                                    <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-5">
+                                        <a href="@Url.Action("Index","User")" class="btn btn-primary">Cancel</a>
+                                        <button type="submit" class="btn btn-success">Submit</button>
+                                    </div>
+                                </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- end project list -->
+            </div>
+        </div>
+    </div>
+</div>
+@*<script>
+    $(document).ready(function () {
+        // Enable Live Search.  
+        $('#Roles').attr('data-live-search', true);
+
+        //// Enable multiple select.  
+        $('#Roles').attr('multiple', true);
+        $('#Roles').attr('data-selected-text-format', 'count');
+
+        $('#Roles').selectpicker(
+        {
+            width: '100%',
+            title: '- [Choose Multiple Countries] -',
+            style: 'btn-warning',
+            size: 6,
+            iconBase: 'fa',
+            tickIcon: 'fa-check'
+        });
+    });
+</script>*@
+<script type="text/javascript">
+        $(function () {
+            $('#FileUpload1').change(function () {
+                $('#Image1').hide();
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#Image1').show();
+                    $('#Image1').attr("src", e.target.result);
+                    $('#Image1').Jcrop({
+                        onChange: SetCoordinates,
+                        onSelect: SetCoordinates
+                    });
+                }
+                reader.readAsDataURL($(this)[0].files[0]);
+            });
+
+            $('#btnCrop').click(function () {
+                var x1 = $('#imgX1').val();
+                var y1 = $('#imgY1').val();
+                var width = $('#imgWidth').val();
+                var height = $('#imgHeight').val();
+                var canvas = $("#canvas")[0];
+                var context = canvas.getContext('2d');
+                var img = new Image();
+                img.onload = function () {
+                    canvas.height = height;
+                    canvas.width = width;
+                    context.drawImage(img, x1, y1, width, height, 0, 0, width, height);
+                    $('#imgCropped').val(canvas.toDataURL());
+                    //$('#btnUpload').show();
+                };
+                img.src = $('#Image1').attr("src");
+            });
+        });
+        function SetCoordinates(c) {
+            $('#imgX1').val(c.x);
+            $('#imgY1').val(c.y);
+            $('#imgWidth').val(c.w);
+            $('#imgHeight').val(c.h);
+            $('#btnCrop').show();
+        };
+</script>
+

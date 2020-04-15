@@ -1,0 +1,327 @@
+﻿@model AMP.ViewModels.Dashboad2.EditContractModel
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+
+<div class="">
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    @if (Model.Contract.Id == 0)
+                    {
+                        <h2>Add Contract Details </h2>
+                    }
+                    else
+                    {
+                        <h2>Edit Contract Details </h2>
+                    }
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <span style="color:@ViewBag.TextColor">@ViewBag.Message</span>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                @using (Html.BeginForm("SaveContract", "Contract", FormMethod.Post))
+                {
+                    <div class="modal-body">
+                        <div class="container">
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Contractor Name :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            @Html.HiddenFor(e => e.Contract.Id)
+                                            @Html.HiddenFor(e => e.Contract.PQId)
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.Contract.ContractorName, new
+                                                        {
+                                                            htmlAttributes = new
+                                                            {
+                                                                @class = "form-control",
+                                                                @id = "ContractName",
+                                                                @placeholder = "Contract Name",
+                                                                required = "required"
+                                                            }
+                                                        })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Estimate Value :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.Contract.EstimateValue, new
+                                                   {
+                                                       htmlAttributes = new
+                                                       {
+                                                           @class = "form-control",
+                                                           @id = "EstimateValue",
+                                                           required = "required"
+                                                       }
+                                                   })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        CIF :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.Contract.ContractorCIF, new
+                                                   {
+                                                       htmlAttributes = new
+                                                       {
+                                                           @class = "form-control",
+                                                           @id = "ContractorCIF",
+                                                           required = "required"
+                                                       }
+                                                   })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        BCD Account :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.EditorFor(e => e.Contract.CGSId, new
+                                                   {
+                                                       htmlAttributes = new
+                                                       {
+                                                           @class = "form-control",
+                                                           @id = "CGSId",
+                                                           required = "required"
+                                                       }
+                                                   })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Contract Type
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.DropDownListFor(m => m.Contract.ContractType, Model.ContractTypes, new { @class = "form-control", @id = "ContractTypeList" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Signing Date :
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_SigningDate" name="Contract.SigningDate" class="form-control has-feedback-left" placeholder="Signing Date" value="@(Model.Contract.SigningDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        Signing Effective Date :
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_SignEffectiveDate" name="Contract.SignEffectiveDate" class="form-control has-feedback-left" placeholder="Effective Date" value="@(Model.Contract.SignEffectiveDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="margin-top:10px;">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Effective date of project :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_ContractStart" name="Contract.ContractStart" required="required" class="form-control has-feedback-left" placeholder="Effective Date" value="@(Model.Contract.ContractStart)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        Actual commercial operation date of project :
+                                        <span class="red">*</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_ContractEnd" name="Contract.ContractEnd" required="required" class="form-control has-feedback-left" placeholder="Commercial Operation Date" value="@(Model.Contract.ContractEnd)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class='col-sm-3'>Scheduled completion date of project</div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_ScheduledDate" name="Contract.ScheduledCompDate" class="form-control has-feedback-left" placeholder="Scheduled Completion Date" value="@(Model.Contract.ScheduledCompDate)">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:10px;">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Note
+                                    </div>
+                                    <div class="col-md-6">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.TextAreaFor(e => e.Contract.CNote, new
+                                                           {
+                                                               @class = "form-control",
+                                                               @id = "Note",
+                                                               @placeholder = "Note or Remarks",
+                                                               @rows = 3,
+                                                           })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <a href="@Url.Action("Detail", "Pq", new {Id = Model.Contract.PQId })" class="btn btn-default">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+        $('#Contract_ContractStart').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+        $('#Contract_ContractEnd').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_SigningDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_SignEffectiveDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_ScheduledDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        })
+
+    </script>
+
+}

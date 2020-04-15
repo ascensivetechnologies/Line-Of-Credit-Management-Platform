@@ -1,0 +1,2404 @@
+﻿@model AMP.ViewModels.Dashboad2.ProjectDetailModel
+@using AMP.Authentication
+@using AMP.Services
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    string projectStatus = "";
+    var user = UserConversion.Convertuser();
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.20.0/slimselect.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.20.0/slimselect.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css" />
+<script src="~/Content/Dashboard2/vendors/moment/min/moment.min.js"></script>
+<script src="~/Content/Dashboard2/build/js/vis.js"></script>
+<link href="~/Content/Dashboard2/build/css/vis.css" rel="stylesheet" />
+<script>
+    var selectedContactId = 0;
+    var _ProjectId = @Model.Id;
+    const setSelectedContactId = function (id) {
+        selectedContactId = id;
+    }
+    var timeline_list = new Array();
+    const openUpdateLocAmountModal = function (locaName, id, amount) {
+        $("#updLinkId").val(id);
+        $("#updLocName").html(locaName);
+        $("#updAllocation").val(amount);
+        $('.bs-updateloc-modal-lg').modal('show');
+    }
+    const openRemoveLocAmountModal = function (id) {
+        $("#rmLinkId").val(id);
+        $('.bs-removeloc-modal-lg').modal('show');
+    }
+    $(document).ready(function () {
+        $('.modal-dialog').draggable();
+        $("#changeMap").draggable({ disabled: true });
+        const pqfileValidation = function(){
+            var ext = $('#pq-file').val().split('.').pop().toLowerCase();
+            var ext2 = $('#dpr-file').val().split('.').pop().toLowerCase();
+            if ($('#pq-file').val()) {
+                if ($.inArray(ext, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid PQ File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("pq-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("PQ File size must be less than 5MB");
+                    return false;
+                }
+            }
+            }
+            if ($('#dpr-file').val()) {
+                if ($.inArray(ext2, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid DPR File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("dpr-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("DPR File size must be less than 5MB");
+                    return false;
+                }
+            }
+            }
+            return true;
+        }
+        const pqFormValidate = function () {
+            if (!$("#pq-file").val()) {
+                alert("PQ file is required");
+                return false;
+            }
+            if ($("#CategorySelect").val() == 'DPR') {
+                if (!$('#dpr-file').val()) {
+                    alert("DPR file is required");
+                    return false;
+                }
+            }
+            return true;
+        }
+        $("#PqDetailForm").on("submit", function (e) {
+            if (pqFormValidate()) {
+                if (!pqfileValidation()) {
+                    e.preventDefault();
+                }
+            } else {
+                e.preventDefault();
+            }
+        });
+        $(".bs-map-modal-lg").on('show.bs.modal', function () {
+            if (!($('.modal.in').length)) {
+                $('.modal-dialog').css({
+                    top: 0,
+                    left: 0
+                });
+            }
+        });
+        var select = new SlimSelect({
+            select: '.locDropDown',
+            placeholder: 'Select a LOC',
+            searchingText: 'Searching...',
+            allowDeselect: true,
+            ajax: function (search, callback) {
+                // Check search value. If you dont like it callback(false) or callback('Message String')
+                if (search.length < 3) {
+                    callback('Need 3 characters')
+                    return
+                }
+                $.ajax({ url: '@Url.Action("GetLOCsForLinking")', type: "GET", data: { projectId: @Model.Id } })
+                 .done(function (data) {
+                     var selectData = [];
+                     for (i = 0; i < data.LOCs.length; i++) {
+                         selectData.push({value: data.LOCs[i].LOCid, text: data.LOCs[i].LOCName})
+                     }
+                     callback(selectData)
+                 })
+                 .fail(function () {
+                     callback(false);
+                 });
+
+            }
+        });
+
+        $("#closeLocBtn").on("click", function () {
+            select.set('');
+        });
+
+        $("#saveLocForm").on("submit", function (e) {
+            e.preventDefault();
+            if(linkFormValidation()){
+                var model = {
+                    LocId : select.selected(),
+                    ProjectId: @Model.Id,
+                    Allocation: $("#allocation").val()
+                }
+                $.ajax(
+                    { url: '@Url.Action("LinkProjectToLOC")',
+                        type: "POST",
+                        data: { project: model } })
+                    .done(function (data) {
+                        window.location.href = '/Projects/Edit/' + @Model.Id;
+                    })
+                    .fail(function () {
+                        alert("Unable to link loc details!");
+                    });
+            }
+        });
+
+        const linkFormValidation = function(){
+            var selectedProject = select.selected();
+            var allocation =$("#allocation").val();
+            if(!selectedProject){
+                alert("An LOC must be selected.");
+                return false;
+            }
+            if(isNaN(allocation) == true){
+                alert("Allocation should be in numeric.");
+                return false;
+            }
+            return true;
+        }
+
+        $("#project-file-upload").on("submit", function(e){
+            e.preventDefault();
+            if(fileValidation()){
+                var formData = new FormData();
+                var file = document.getElementById("project-file").files[0];
+                formData.append("File", file);
+                formData.append("ProjectId", @Model.Id);
+                $.ajax({
+                    type: 'POST',
+                    url: '/Projects/AddProjectFile',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function (result) {
+                        window.location.href = '/Projects/Edit/' + @Model.Id;
+                    },
+                    error: function (xhr, status) {
+                        alert("Unable to upload file.");
+                    }
+                });
+            }
+        });
+
+        const fileValidation = function(){
+            var ext = $('#project-file').val().split('.').pop().toLowerCase();
+            if ($.inArray(ext, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("project-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("File size must be less than 5MB");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        $("#btn-search").on("click", function(){
+            var txt = $("#pq-number").val();
+            if(txt == ''){
+                alert("PQ Number is empty");
+            }
+            else{
+                $.ajax({
+                    type: 'GET',
+                    url: '/Projects/SearchContracts?pqNumber='+txt,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function (result) {
+                        $('#grid-contracts tbody').empty();
+                        if (result.length > 0) {
+                            console.log(result);
+                            $.each(result, function(i, data){
+                                var markup = "<tr>";
+                                markup = markup + "<td>" + data.PackageId + "</td>";
+                                markup = markup + "<td>" + data.PackageName + "</td>";
+                                markup = markup + "<td>" + data.PackageDisplayId + "</td>";
+                                markup = markup + "<td>" + data.EstimateValue + "</td>";
+                                markup = markup + "<td>" + data.TypeOfPackage + "</td>";
+
+                                markup = markup + "<td style='display:none;'>" + data.PQNo + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.PQId + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.Ref + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.Title + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.Country + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.Status + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.LocNumber + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.LocAmount + "</td>";
+                                markup = markup + "<td style='display:none;'>" + data.NoOfPackage + "</td>";
+                                markup = markup + "<td style='display:none;'><input type='checkbox' class='checkbox' checked /></td>"
+
+                                markup = markup + '</tr>'
+                                $("#grid-contracts tbody").append(markup);
+                            });
+
+                        }
+                    },
+                    error: function (xhr, status) {
+                        alert("Unable to fetch contract data");
+                    }
+                });
+            }
+        });
+
+        $("#btn-save-contracts").on("click", function(){
+            var packages = [];
+            var tableControl = document.getElementById("grid-contracts");
+            $("input:checkbox:checked", tableControl).each(function () {
+                var package = {};
+                package.PackageId = $(this).closest("tr").find("td").eq(0).text();
+                package.PackageName = $(this).closest("tr").find("td").eq(1).text();
+                package.PackageDisplayId = $(this).closest("tr").find("td").eq(2).text();
+                package.EstimateValue = $(this).closest("tr").find("td").eq(3).text();
+                package.TypeOfPackage = $(this).closest("tr").find("td").eq(4).text();
+                package.PQNo = $(this).closest("tr").find("td").eq(5).text();
+                package.PQId = $(this).closest("tr").find("td").eq(6).text();
+                package.Ref = $(this).closest("tr").find("td").eq(7).text();
+                package.Title = $(this).closest("tr").find("td").eq(8).text();
+                package.Country = $(this).closest("tr").find("td").eq(9).text();
+                package.Status = $(this).closest("tr").find("td").eq(10).text();
+                package.LocNumber = $(this).closest("tr").find("td").eq(11).text();
+                package.LocAmount = $(this).closest("tr").find("td").eq(12).text();
+                package.NoOfPackage = $(this).closest("tr").find("td").eq(13).text();
+                packages.push(package);
+            });
+            if (packages.length > 0) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Projects/SaveContracts',
+                    data: { Packages : packages, ProjectId : @Model.Id }
+                }).done(function (result) {
+                    alert(result.Message);
+                    if (result.Data.length > 0) {
+                        $("#project-contracts tbody").empty();
+                        $("#grid-contracts tbody").empty();
+                        $("#pq-number").val('');
+                        var count = 1;;
+                        $.each(result.Data, function(i, data){
+                            var markup = "<tr>";
+                            markup = markup + "<td>" + count + "</td>";
+                            markup = markup + "<td>" + data.PackageId + "</td>";
+                            markup = markup + "<td>" + data.PackageName + "</td>";
+                            markup = markup + "<td>" + data.PackageDisplayId + "</td>";
+                            markup = markup + "<td>" + data.EstimateValue + "</td>";
+                            markup = markup + "<td>" + data.TypeOfPackage + "</td>";
+                            markup = markup + "<td>" + data.PqNo + "</td>";
+                            markup = markup + '</tr>';
+                            $("#project-contracts tbody").append(markup);
+                            count++;
+                        });
+                    }
+                    //$(".bs-addpq-modal-lg").modal("hide");
+                })
+                .fail(function(){
+                    alert("unable to save contracts");
+                });
+            }
+            else{
+                alert("No contracts has been selected");
+            }
+        });
+
+        $("#btn-contact-add").on("click", function () {
+            $("#add-contacts").fadeIn(200);
+            $("#grid-contacts").fadeOut(200);
+            $("#btn-link-contacts").hide();
+            $("#btn-contact-add").hide();
+            $("#btn-contact-search").hide();
+            $("#btn-save-contacts").show();
+            $("#btn-cancel-contacts").show();
+            $(".search").hide();
+        });
+
+        $("#btn-cancel-contacts").on("click", function () {
+            showSearchContactDiv();
+        });
+
+        function showSearchContactDiv() {
+            $("#add-contacts").fadeOut(200);
+            $("#btn-contact-add").show();
+            $("#grid-contacts").fadeIn(200);
+            $("#btn-link-contacts").show();
+            $("#btn-save-contacts").hide();
+            $("#btn-cancel-contacts").hide();
+            $(".search").show();
+            $("#btn-contact-search").show();
+        }
+
+        $("#btn-contact-modal").on("click", function () {
+            showSearchContactDiv();
+        });
+
+        $("#btn-contact-search").on("click", function () {
+            var searchTxt = $("#searchTxt").val();
+            var projectId = @Model.Id;
+            $.ajax({
+                type: 'GET',
+                url: '/Projects/GetContactsForLinking?projectId=' + projectId
+                    + '&searchTxt=' + searchTxt,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function (result) {
+                    $('#grid-contacts tbody').empty();
+                    var count = 1;
+                    if (result.Contacts.length > 0) {
+                        $.each(result.Contacts, function (i, data) {
+                            var markup = "<tr>";
+                            markup = markup + '<td><input type="checkbox" class="checkbox" /></td>';
+                            markup = markup + "<td>" + count + "</td>";
+                            markup = markup + "<td style='display:none;'>" + data.Id + "</td>";
+                            markup = markup + "<td>" + data.Name + "</td>";
+                            markup = markup + "<td>" + data.ContactType + "</td>";
+                            markup = markup + "<td>" + data.Organization + "</td>";
+                            markup = markup + '</tr>'
+                            $("#grid-contacts tbody").append(markup);
+                            count++;
+                        });
+
+                    }
+                },
+                error: function (xhr, status) {
+                    alert("Unable to fetch contact data");
+                }
+            })
+        });
+
+        $("#btn-link-contacts").on("click", function () {
+            var contactids = [];
+            var projectid = @Model.Id;
+            var tableControl = document.getElementById("grid-contacts");
+            $("input:checkbox:checked", tableControl).each(function(){
+                var value = $(this).closest("tr").find("td").eq(2).text();
+                contactids.push(value);
+            });
+            if(contactids.length > 0){
+                $.ajax({
+                    type: 'POST',
+                    url: '/Projects/LinkContactsToProject',
+                    data: {contactIds : contactids, projectId: projectid}
+                }).done(function (result) {
+                    alert(result.Message);
+                    if (result.Data.length > 0) {
+                        loadContactData();
+                    }
+                })
+                .fail(function(){
+                    alert("unable to save contacts");
+                });
+            }
+            else{
+                alert("No contacts has been selected");
+            }
+        });
+
+        $("#btn-save-map").on("click", function () {
+            var projectid = @Model.Id;
+            var maptype = $("input[name=maptype]:checked").val();
+            if(markerList.length > 0){
+                $.ajax({
+                    type: 'POST',
+                    url: '/Projects/SaveProjectLocations',
+                    data: {locations : markerList, projectId: projectid, mapType: maptype}
+                }).done(function (result) {
+                    alert(result.Message);
+                    location.reload();
+                })
+                .fail(function(){
+                    alert("unable to save Locations");
+                });
+            }
+            else{
+                alert("No Location has been marked");
+            }
+        });
+
+        const loadContactData = function (result) {
+            $("#project-contacts tbody").empty();
+            $("#grid-contacts tbody").empty();
+            $("#searchTxt").val('');
+            var count = 1;;
+            $.each(result.Data, function(i, data){
+                var markup = "<tr>";
+                markup = markup + "<td>" + count + "</td>";
+                markup = markup + "<td style='display:none;'>" + data.Id + "</td>";
+                markup = markup + "<td>" + data.ContactType + "</td>";
+                markup = markup + "<td><a class='green' href='Javascript:void(0);' data-toggle='modal' data-target='.bs-viewcontact-modal-lg'>" + data.Name + "</a></td>";
+                markup = markup + "<td>" + data.Organization + "</td>";
+
+                markup = markup + '</tr>';
+                $("#project-contacts tbody").append(markup);
+                count++;
+            });
+        }
+
+        $("#btn-save-contacts").on("click", function () {
+            const contact = getContactFormData();
+            const projectid= @Model.Id ;
+            if (validateContactForm(contact)) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SaveandLinkContactToProject")',
+                    data: { contact: contact, projectId: projectid }
+                }).done(function (result) {
+                    if (result.Status.Message) {
+                        alert(result.Status.Message);
+                    }
+                    else {
+                        alert("Something went wrong");
+                    }
+                    $(".bs-contact-modal-lg").modal("hide");
+                    window.location.reload();
+                }).fail(function(){
+                    alert("unable to save contact");
+                });
+            }
+
+        });
+
+        const getContactFormData = function () {
+            var contact = {
+                Id: 0, Name: '', ContactTypeId: 0, Organization: '', Designation: '', Landline: '', MobileNumber: '', FaxNumber: '', Email: '',
+                AddressLine1: '', AddressLine2: '', City: '', Pincode: '', CountryId: 0
+            };
+
+            contact.Name = $("#contactName").val();
+            contact.ContactTypeId = $("#contactType").val();
+            contact.Organization = $("#contactOrg").val();
+            contact.Designation = $("#contactDesig").val();
+            contact.Landline = $("#contactLandline").val();
+            contact.MobileNumber = $("#contactMobile").val();
+            contact.FaxNumber = $("#contactFax").val();
+            contact.Email = $("#contactEmail").val();
+            contact.AddressLine1 = $("#contactAddressLine1").val();
+            contact.AddressLine2 = $("#contactAddressLine2").val();
+            contact.City = $("#contactCity").val();
+            contact.Pincode = $("#contactPincode").val();
+            contact.CountryId = $("#contactCountry").val();
+            return contact;
+        }
+
+        const validateContactForm = function (contact) {
+            if (contact) {
+                if (!contact.Name) {
+                    alert("Contact Name is required");
+                    return false;
+                }
+                if (!contact.ContactTypeId) {
+                    alert("Contact Type is required");
+                    return false;
+                }
+                if (contact.ContactTypeId == 0) {
+                    alert("Contact Type is required");
+                    return false;
+                }
+                if (!contact.Organization) {
+                    alert("Organization is required");
+                    return false;
+                }
+                return true
+            }
+            else {
+                alert('Invalid contact data');
+                return false;
+            }
+        }
+
+        $('.bs-viewcontact-modal-lg').on('shown.bs.modal', function (e) {
+            getDetailForContact();
+        });
+
+        $('.bs-contact-modal-lg').on('hide.bs.modal', function (e) {
+            window.location.reload();
+        });
+
+        const getDetailForContact = function () {
+            $("#contact-detail-desig").html('Loading Data...');
+            $("#contact-detail-name").html('');
+            $("#contact-detail-org").html('');
+            $("#contact-detail-address").html('');
+            $("#contact-detail-landline").html('');
+            $("#contact-detail-fax").html('');
+            $("#contact-detail-cellphone").html('');
+            $("#contact-detail-email").html('');
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetContactDetail")' + '?contactId=' + selectedContactId
+            }).done(function (result) {
+                setContactDetailData(result);
+            }).fail(function () {
+                alert("Something went wrong");
+            });
+        };
+
+        const setContactDetailData = function (data) {
+
+            var address = '';
+            if (data.AddressLine1) {
+                address = address + data.AddressLine1 + ", ";
+            }
+            if (data.AddressLine2) {
+                address = address + data.AddressLine2 + ", ";
+            }
+            if (data.City) {
+                address = address + data.City + " ";
+                if (data.Pincode) {
+                    address = address + '- ' + data.Pincode;
+                }
+            }
+            if (data.CountryName) {
+                address = address + ", " + data.CountryName;
+            }
+
+            if(data.Image != null)
+            {
+                $("#ContactImage").prop("src",data.Image);
+            }
+            else
+            {
+                $("#ContactImage").prop("src","/Content/localImages/img.jpg");
+            }
+
+            $("#contact-detail-desig").html(data.Designation);
+            $("#contact-detail-name").html(data.Name);
+            $("#contact-detail-org").html(data.Organization);
+            $("#contact-detail-address").html(address);
+            $("#contact-detail-landline").html(data.Landline);
+            $("#contact-detail-fax").html(data.FaxNumber);
+            $("#contact-detail-cellphone").html(data.MobileNumber);
+            $("#contact-detail-email").html(data.Email);
+        }
+
+        $("#btn-save-progress").on("click", function () {
+            var projectId = @Model.Id;
+            var statusId = $("#ddlStatus").val();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("UpdateProjectProgress")',
+                data: { projectId: projectId, statusId: statusId }
+            }).done(function (result) {
+                //alert(result.Message);
+                if (result.Status) {
+                    var status = $("#ddlStatus option:selected").text();
+                    $("#currentStatusLbl").html(status)
+                    $('#updateprogress').modal('toggle');;
+                }
+            }).error(function () {
+            });
+        });
+        $(".bs-updateprogress-modal-lg").on('hide.bs.modal', function () {
+            window.location.reload();
+        });
+        $(".bs-project-timeline-modal-lg").on('shown.bs.modal', function () {
+            $(".datepicker").datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+        });
+        $("#btn-add-timeline").on("click", function () {
+            var projectTimeline = { Id: 0, ProjectTimeLine: '', TimelineDate: '', ProjectId: '' };
+            projectTimeline.ProjectId = @Model.Id;
+            projectTimeline.ProjectTimeLine = $("#timeline-txt").val();
+            projectTimeline.TimelineDate = $("#timeline-date").val();
+            if (projectTimeline.ProjectId == 0) {
+                alert("Invalid project");
+                return;
+            }
+            if (!projectTimeline.ProjectTimeLine) {
+                alert("Project Timeline Title is required");
+                $("#timeline-txt").focus();
+                return;
+            }
+            if (!projectTimeline.TimelineDate) {
+                alert("Timeline date is required");
+                $("#timeline-date").focus();
+                return;
+            }
+            //Check for date format
+            $.ajax({
+                url: '@Url.Action("AddNewProjectTimeline")',
+                type: 'POST',
+                data: {projectTimeline: projectTimeline}
+            }).done(function(result) {
+                if (result.Status) {
+                    alert("Data Updated");
+                    projectTimeline.Id = result.ProcessedId;
+                    UpdateTimelineList(projectTimeline);
+                    $("#timeline-txt").val('');
+                    $("#timeline-date").val('');
+                }
+                else {
+                    alert("Something went wrong");
+                }
+            }).fail(function(){
+                alert("Something went wrong");
+            });
+        });
+        $("#btn-update-timelines").on("click", function (e) {
+            var projectTimelines = [];
+            $(".tm-data").each(function (index) {
+                var timelineId = $(this).find(".tm-data-id").eq(0).val();
+                var timeLineDate = $(this).find(".tm-data-date").eq(0).val();
+                var timeLineTitle = $(this).find(".tm-data-title").eq(0).val();
+                var projectTimeline = { Id: timelineId, ProjectTimeLine: timeLineTitle, TimelineDate: timeLineDate, ProjectId: _ProjectId };
+                projectTimelines.push(projectTimeline);
+            });
+            $.ajax({
+                url: '@Url.Action("UpdateProjectTimeline")',
+                type: 'POST',
+                data: { projectTimelines: projectTimelines }
+            }).done(function (result) {
+                //alert(result.Message);
+                $('#projectTimeLine').modal('toggle');
+            }).fail(function () {
+                alert("Something went wrong");
+            });
+        });
+        $(".bs-project-timeline-modal-lg").on("hide.bs.modal", function () {
+            window.location.reload();
+        });
+
+        $("#editProjectCodeBtn").on('click', function () {
+            $("#projectCodeTxt").val($("#updProjectCode").val());
+             $('.bs-updateproject-code-modal-lg').modal('show');
+        });
+        $(".bs-updateproject-code-modal-lg").on("hide.bs.modal", function () {
+            window.location.reload();
+        });
+        $("#updateProjectCodeBtn").on("click", function (e) {
+            $("#codeSuccessUpdate").text('');
+            $("#codeErrorUpdate").text('');
+            if ($("#projectCodeTxt").val() == "") {
+                $("#codeErrorUpdate").text("Project code cannot be empty");
+                return;
+            } else {
+                let projectId = $("#updProjectId").val();
+                let projectCode = $("#projectCodeTxt").val();
+                $.ajax({
+                    url: '@Url.Action("SaveProjectCode")',
+                    type: 'POST',
+                    data: { code: projectCode, projectId: projectId }
+                }).done(function (result) {
+                    if (result.Status) {
+                        $("#codeSuccessUpdate").text(result.Message);
+                    } else {
+                        $("#codeErrorUpdate").text(result.Message);
+                    }
+                }).fail(function () {
+                    $("#codeErrorUpdate").text("Something went wrong while updating project code.");
+                });
+            }
+        });
+
+        const clearPqDetails = function () {
+            $("#PqId").val("0");
+            $("#PQRefNumber").val("");
+            $("#AddEndumRefno").val("");
+            $("#ProjectCost").val("");
+            $("#ApplicationStart").val("");
+            $("#ApplicationEnd").val("");
+            $("#PqDocPublishedOn").val("");
+            $("#LastSubmissionOn").val("");
+            $("#PqStatus").val("");
+        }
+
+        $("#add-pq-btn").on("click", function () {
+            clearPqDetails();
+        });
+
+        setProjectTimeLines();
+    });
+
+
+
+    const UpdateTimelineList = function (data) {
+        var html = '<div class="col-sm-6 tm-data"> ' + data.ProjectTimeLine
+                    + '<fieldset><div class="control-group"><div class="controls">'
+                    + '<div class="col-md-11 xdisplay_inputx form-group has-feedback">'
+            + '<input type="hidden" class="tm-data-id" value="' + data.Id +'" />'
+            + '<input type="text" class="form-control has-feedback-left datepicker tm-data-date" value="'+ data.TimelineDate + '" aria-describedby="inputSuccess2Status2" />'
+            + '<span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true">'
+            + '</span > <span id="inputSuccess2Status2" class="sr-only">(success)</span></div></div></div></fieldset></div>';
+        $(".timeline-list").append(html);
+    }
+
+
+    const setProjectTimeLines = function () {
+        var container = document.getElementById("project-timelines");
+        if (timeline_list && timeline_list.length > 0) {
+            var items = new vis.DataSet(timeline_list);
+            // Configuration for the Timeline
+            var options = {
+                showTooltips: true,
+                stack: true,
+            };
+            // Create a Timeline
+            var timeline = new vis.Timeline(container, items, options);
+        }
+        else {
+            $("#project-timelines").text("No timelines updated yet.");
+        }
+    }
+    @foreach(var item in Model.TimeLines)
+    {
+        @:timeline_list.push({ id: @item.Id, content: '@item.ProjectTimeLine', start: moment('@item.TimelineDate', 'DD/MM/YYYY').format('YYYY/MM/DD'), title: moment('@item.TimelineDate', 'DD/MM/YYYY').format('YYYY/MM/DD') });
+            }
+
+</script>
+<style>
+    .row-pad {
+        margin-top: 5px;
+    }
+
+    .btn-lgp {
+        padding: 10px 16px;
+        font-size: 12px;
+        line-height: 1.3333333;
+        border-radius: 6px;
+    }
+
+    .message {
+        font-size: 13.5px;
+    }
+
+    .linkbtn {
+        padding: 1px 5px !important;
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+        color: #fff !important;
+    }
+
+        .linkbtn:hover {
+            background-color: #f0ad4e !important;
+        }
+</style>
+<div class="">
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><a href="@Url.Action("Index")" class="glyphicon-link blue">Projects > </a>Project Details </h2>
+                    @if (user.IsInRole("DeskOfficer"))
+                    {
+                        <a href="@Url.Action("EditProject", new { Id = Model.Id })" class="btn btn-warning pull-right">Edit Project Details</a>
+                    }
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="x_content">
+
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+
+                        <ul class="stats-overview">
+                            <li>
+                                <span class="name"> Project Value </span>
+                                <span class="value text-success">$ @Model.ProjectValue.ToString("0,0.00") </span>
+                            </li>
+                            <li>
+                                <span class="name"> Total Amount Disbursed </span>
+                                <span class="value text-success">$ @Model.AmountDisbursed.ToString("0,0.00") </span>
+                            </li>
+                            <li class="hidden-phone">
+                                <span class="name"> Estimated Project Duration</span>
+                                <span class="value text-success">@(string.IsNullOrEmpty(Model.Duration) ? "NA" : Model.Duration)</span>
+                            </li>
+                        </ul>
+                        <br />
+
+
+                        <div class="btn-group" style="width:100%">
+                            @foreach (var status in Model.ProjectStatuses)
+                            {
+                                <button class="btn @(Model.Status == status.Id ? "btn-success" : "btn-default") btn-lgp disabled" type="button" style="width:20%">@status.Name</button>
+                                if (status.Id == Model.Status)
+                                {
+                                    projectStatus = status.Name;
+                                }
+                            }
+                        </div>
+
+                        <br />
+                        <br />
+                        <!-- <div id="visualization"> -->
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Project Timelines <small>Important dates</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-project-timeline-modal-lg">Edit</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <div id="project-timelines">
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- </div> -->
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>LOC List <small>The following LOCs are leveraged in this Project</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li>
+                                            <button id="addLocBtn" type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addloc-modal-lg">Add LOC </button>
+                                        </li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            @{
+                                int sno = 1;
+                            }
+                            <div class="x_content">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            @*<th>No</th>*@
+                                            <th>LOC</th>
+                                            <th>Country</th>
+                                            @*<th>Added</th>*@
+                                            <th>Classification</th>
+                                            <th>Account</th>
+                                            <th width="10%">Value</th>
+                                            <th>
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Locs == null || !Model.Locs.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="6">No LOC has been linked yet.</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.Locs)
+                                            {
+                                                <tr>
+                                                    @*<th scope="row">@sno</th>*@
+                                                    @*<td>@record.LocName</td>*@
+                                                    <td><a class="green" href="@Url.Action("Edit","Loc",new { Id = record.LocId})"> @record.LocName</a></td>
+                                                    <td>@(string.IsNullOrEmpty(record.Country) ? "NA" : record.Country)</td>
+                                                    @*<td>@record.Added</td>*@
+                                                    <td>@(string.IsNullOrEmpty(record.Classification) ? "NA" : record.Classification)</td>
+                                                    <td>@(string.IsNullOrEmpty(record.AccountNumber) ? "NA" : record.AccountNumber)</td>
+                                                    <td>@string.Format("$ {0:n2}", record.AllocatedValue)</td>
+                                                    <td class="a-right a-right">
+                                                        <a href="#" onclick="openUpdateLocAmountModal('@record.LocName', @record.LinkId, @record.AllocatedValue)">
+                                                            <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                                        </a>
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="#" onclick="openRemoveLocAmountModal(@record.LinkId)">
+                                                            <span class="glyphicon glyphicon-remove mybtn-red" aria-hidden="true"></span>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                sno += 1;
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>PQ List <small>The following PQs are included in this Project</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                    <li><button type="button" class="btn btn-xs btn-danger add-pq-btn" data-toggle="modal" data-target=".bs-editpq-modal-lg">Add Prequalification</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            @{
+                                sno = 1;
+                            }
+                            <div class="x_content">
+                                <table id="project-contracts" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>PQ Reference No</th>
+                                            <th>Application Start</th>
+                                            <th>Application End</th>
+                                            <th>Addendum Ref No.</th>
+                                            <th>Contract Signing Date</th>
+                                        </tr>
+                                    </thead>
+                                    @if (Model.ProjectPQs != null)
+                                    {
+                                        <tbody>
+                                            @foreach (var pq in Model.ProjectPQs)
+                                            {
+                                            <tr>
+                                                <td>@sno</td>
+                                                <td><a class="green" href='@Url.Action("Detail", "Pq", new {id = pq.Id})'>@(string.IsNullOrEmpty(pq.PQRefNumber) ? "NA" : pq.PQRefNumber)</a>
+                                                <td>@(string.IsNullOrEmpty(pq.ApplicationStart) ? "NA" : pq.ApplicationStart)</td>
+                                                <td>@(string.IsNullOrEmpty(pq.ApplicationEnd) ? "NA" : pq.ApplicationEnd)</td>
+                                                <td>@(string.IsNullOrEmpty(pq.AddEndumRefno) ? "NA" : pq.AddEndumRefno)</td>
+                                                <td>@(string.IsNullOrEmpty(pq.ProjectPQSigninDate) ? "NA" : pq.ProjectPQSigninDate)</td>
+                                            </tr>
+                                                sno += 1;
+                                            }
+                                        </tbody>
+                                    }
+                                    else
+                                    {
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="7">No Prequalifications are included in project yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Contract List <small>The following Contracts are included in this Project</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                   
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            @{
+                                sno = 1;
+                            }
+                            <div class="x_content">
+                                <table id="project-contracts" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Contract Id</th>
+                                            <th>Contract Name</th>
+                                            <th>Package Display Id</th>
+                                            <th>Contract Value</th>
+                                            <th>Type Of Package</th>
+                                            <th>PQ No.</th>
+                                        </tr>
+                                    </thead>
+                                    @if (Model.ProjectContracts != null && Model.ProjectContracts.Any())
+                                    {
+                                        <tbody>
+                                            @foreach (var contract in Model.ProjectContracts)
+                                            {
+                                                <tr>
+                                                    <td>@sno</td>
+                                                    <td><a class="green" href='@Url.Action("ContractDetail", "Contract", new {id = contract.ContractId})'>@(string.IsNullOrEmpty(contract.PackageId) ? "NA" : contract.PackageId)
+                                                    <td>@(string.IsNullOrEmpty(contract.PackageName) ? "NA" : contract.PackageName)</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.PackageDisplayId) ? "NA" : contract.PackageDisplayId)</td>
+                                                    <td>@(contract.EstimateValue == null ? "0" : string.Format("$ {0:n2}", contract.EstimateValue))</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.TypeOfPackage) ? "NA" : contract.TypeOfPackage)</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.PqNo) ? "NA" : contract.PqNo)</td>
+                                                </tr>
+                                                sno += 1;
+                                            }
+                                        </tbody>
+                                    }
+                                    else
+                                    {
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="7">No contracts are included in project yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Contact Details <small>The following stakeholders are involved in or connected to this Project</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" id="btn-contact-modal" data-toggle="modal" data-target=".bs-contact-modal-lg">Add Contact </button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            @{
+                                sno = 1;
+                            }
+                            <div class="x_content">
+                                <table id="project-contacts" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Type</th>
+                                            <th>Name</th>
+                                            <th>Organization</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.ProjectContacts == null || !Model.ProjectContacts.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="4">
+                                                    No Stakeholders are connected to this project yet.
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var contact in Model.ProjectContacts)
+                                            {
+                                                <tr>
+                                                    <th scope="row">@sno</th>
+                                                    <td>@(string.IsNullOrEmpty(contact.ContactType) ? "NA" : contact.ContactType)</td>
+                                                    <td><a class="green" href="javascript:void(0);" data-toggle="modal" data-target=".bs-viewcontact-modal-lg" onclick="setSelectedContactId(@contact.Id)">@contact.Name</a></td>
+                                                    <td>@(string.IsNullOrEmpty(contact.Organization) ? "NA" : contact.Organization)</td>
+                                                </tr>
+                                                sno += 1;
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Project Locations <small>The Project is located in the following region</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning" id="btn-map-modal" data-toggle="modal" data-target=".bs-map-modal-lg">Change Map </button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <h5 class="green">@Model.CountriesName</h5>
+                                @if (Model.Locations.Count > 0)
+                                {
+                                    string prevlat = "", prevlon = "";
+                                    string mapper = "https://maps.googleapis.com/maps/api/staticmap?size=800x300&";
+                                    foreach (var marker in Model.Locations)
+                                    {
+                                        if (marker.MapType == "route")
+                                        {
+                                            if (prevlat != "" && prevlon != "")
+                                            {
+                                                mapper += "path=color:" + marker.Color + "|weight:5|" + prevlat + "," + prevlon + "|" + marker.Latitude + "," + marker.Longitude + "&";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            mapper += "markers=color:" + marker.Color.ToLower() + "%7Clabel:" + marker.SequenceNumber.ToString() + "%7C" + marker.Latitude + "," + marker.Longitude + "&";
+                                        }
+                                        prevlat = marker.Latitude;
+                                        prevlon = marker.Longitude;
+                                    }
+                                    mapper += "key="+ @StringMapperService.GetValue("GoogleAPIKey");
+                                    <img style="-webkit-user-select: none;width:100%" src=@mapper>
+                                }
+                                else
+                                {
+                                    string mapper = "https://maps.googleapis.com/maps/api/staticmap?size=800x300&center=" + HttpUtility.UrlEncode(string.Format("{0}", Model.Address)) + "&maptype=roadmap&key="+@StringMapperService.GetValue("GoogleAPIKey");
+                                    <img style="-webkit-user-select: none;width:100%" src=@mapper>
+                                }
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- start project-detail sidebar -->
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+                        <section class="panel">
+                            <div class="x_title">
+                                <h2>@Model.Code</h2>
+                                <a href="#" id="editProjectCodeBtn" style="float:right">
+                                    <span class="glyphicon glyphicon-pencil mybtn-blue" aria-hidden="true"></span>
+                                </a>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="panel-body">
+                                <h3 class="green"><i class="fa fa-gear"></i> @Model.ProjectName</h3>
+
+                                <p><b>Description</b></p>
+                                <p>@(string.IsNullOrEmpty(Model.Description) ? "NA" : Model.Description)</p>
+                                <br />
+
+                                <div class="project_detail">
+
+                                    <p class="title">Project Sector</p>
+                                    <p class="title"><i class="fa @Model.SectorFaIcon"></i> @(string.IsNullOrEmpty(Model.SectorName) ? "NA" : Model.SectorName)</p>
+                                    <p>@Model.SubsectorName</p>
+
+                                    @*<p class="title">Project Authority</p>
+                                        <p>Africa Drilling Company i.e. Afrodrill, Limitada (Afrodrill)</p>
+
+                                        <p class="title">Team Details</p>
+                                        <a class="green" href="#" data-toggle="modal" data-target=".bs-viewcontact-modal-lg">Nicole Pearson</a></br>
+                                        <a class="green" href="#" data-toggle="modal" data-target=".bs-viewcontact-modal-lg">Sanjay Das</a>*@
+
+                                    <p class="title">Team Details</p>
+                                    @foreach (var team in Model.TeamMembers)
+                                    {
+                                        <a class="green" href="javascript:void(0);" data-toggle="modal" data-target=".bs-viewcontact-modal-lg" onclick="setSelectedContactId(@team.ContactId)">@team.DisplayName</a>
+                                        if (user.IsInRole("Admin"))
+                                        {
+                                            <span aria-hidden="true" style="cursor: pointer">@Html.ActionLink("×", "RemoveTeamMember", "Projects", new { id = team.TeamId, ProjectId = Model.Id }, null)</span> <br />
+                                        }
+                                    }
+                                    @if (Model.TeamMembers == null || !Model.TeamMembers.Any())
+                                    {
+                                        <span>NA</span>
+                                    }
+                                </div>
+
+                                <br />
+                                <p class="title">Project Files</p>
+                                <ul class="list-unstyled project_files">
+                                    @foreach (var file in Model.Files)
+                                    {
+                                        <li>
+                                            @if (user.IsInRole("DeskOfficer"))
+                                            {
+                                                <a href="@file.Src"><i class="fa fa-file"></i> @file.DisplayName</a>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa fa-file"></i> @file.DisplayName
+                                            }
+
+                                        </li>
+                                    }
+                                    @if (Model.Files == null || !Model.Files.Any())
+                                    {
+                                        <li><span>No files uploaded yet.</span></li>
+                                    }
+                                </ul>
+                                <br />
+                                @if (user.IsInRole("DeskOfficer"))
+                                {
+                                    <div class="text-center mtop20">
+                                        <!-- <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Edit Project</button> -->
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-files-modal-lg">Add files</a>
+                                        <a href="#" class="btn btn-sm btn-warning" data-toggle="modal" data-target=".bs-updateprogress-modal-lg">Update Progress</a>
+                                    </div>
+                                }
+                                @if (user.IsInRole("Admin"))
+                                {
+                                    <div class="text-center mtop20">
+                                        <!-- <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Edit Project</button> -->
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-addteam-modal-lg">Add Team Member</a>
+                                    </div>
+                                }
+                            </div>
+
+                        </section>
+                        <!-- start of user messages -->
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div>
+                                <div class="x_title">
+                                    <h2>Note</h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <ul class="list-unstyled scroll-view">
+
+                                    <li class="media event">
+                                        <div class="media-body">
+                                            <p>@Model.Note</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        <div>
+                            <div class="x_title">
+                                <h2>Recent Activity</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <ul class="list-unstyled top_profiles scroll-view">
+
+                                @foreach (var activity in Model.Activity ?? new List<AMP.ViewModels.Dashboad2.ActivityModel>())
+                                {
+                                    <li class="media event">
+                                        <a class="pull-left">
+                                            @if (string.IsNullOrWhiteSpace(activity.Image))
+                                            {
+                                                <img src="~/Content/localImages/img.jpg" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                            else
+                                            {
+                                                <img src="@activity.Image" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                        </a>
+                                        <div class="media-body">
+                                            <a class="title" href="#">@activity.Name</a>
+                                            <p><strong></strong> @activity.Description </p>
+                                            @if (!string.IsNullOrWhiteSpace(activity.AttachmentURL))
+                                            {
+                                                <p class="url">
+                                                    <span class="fs1 text-info" aria-hidden="true" data-icon=""></span>
+                                                    <a href="@activity.AttachmentURL"><i class="fa fa-paperclip"></i> @activity.AttachmentName </a>
+                                                </p>
+                                            }
+                                            <p>
+                                                <small>@activity.LogTime</small>
+                                            </p>
+                                        </div>
+                                    </li>
+
+                                }
+                                @if (Model.Activity == null || !Model.Activity.Any())
+                                {
+                                    <li><span>No recent activity to show.</span></li>
+                                }
+                            </ul>
+                        </div>
+                        <!-- end of user messages -->
+                    </div>
+                    <!-- end project-detail sidebar -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-files-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add Project Files</h4>
+            </div>
+
+            <form id="project-file-upload">
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div>
+                                    <input type="file" name="projectFile" id="project-file" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:5px;">
+                            <div class='col-sm-12'>
+                                <label class="alert bg-green" style="padding:2px;margin-bottom:0px;"><b>Supported File Types :</b>Pdf, Word, Excel, PNG, JPG </label>
+                                <br />
+                                <label class="alert alert-warning" style="padding:2px;margin-top:5px; margin-bottom:0px;">File size should be less than 5MB.</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addloc-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Link LOC</h4>
+            </div>
+            <form id="saveLocForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">Select LOC:</label>
+                                    <select class="locDropDown">
+                                        <option data-placeholder="true"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">Allocation ($):</label>
+                                    <input type="number" step="0.01" id="allocation" name="allocation" class="form-control col-md-7 col-xs-12" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="closeLocBtn" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="saveLocBtn">Save changes</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addpq-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Sync Contracts</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div>
+                                    <input type="text" id="pq-number" name="pq-number" required="required" class="form-control col-md-7 col-xs-12" placeholder="PQ Number ">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div>
+                                    <a href="#" id="btn-search" class="btn btn-sm btn-info">Search</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <table id="grid-contracts" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Package Id</th>
+                                <th>Package Name</th>
+                                <th>Package Display Id</th>
+                                <th>Estimate Value</th>
+                                <th>Type Of Package</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-contracts">Add Selected Contracts</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-contact-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Link Contact</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-6 search">
+                            <div class="form-group">
+                                <div>
+                                    <input type="text" id="searchTxt" required="required" class="form-control col-md-7 col-xs-12" placeholder="Search For Contacts ">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <a href="javascript:void(0);" id="btn-contact-search" class="btn btn-sm btn-info">Search</a>
+                                <a href="javascript:void(0);" id="btn-contact-add" class="btn btn-sm btn-info">Add New</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <table id="grid-contacts" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>No.</th>
+                                <th style="display:none;">Id</th>
+                                <th>Name</th>
+                                <th>Contact Type</th>
+                                <th>Organisation</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div id="add-contacts" style="display:none;">
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Contact Type</label>
+                                <input type="hidden" value="0" id="contactId" />
+                                <div class="col-sm-6">
+                                    <select class="form-control" id="contactType">
+                                        @foreach (var type in Model.ContactTypes)
+                                        {
+                                            <option value="@type.Id">@type.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Name</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" id="contactName" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Organization</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactOrg" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3">Designation</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactDesig" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Landline</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactLandline" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3">Mobile</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactMobile" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Fax</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactFax" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3">Email</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactEmail" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Address Line 1</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactAddressLine1" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Address Line 2</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactAddressLine2" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">City</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactCity" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3">Pincode/Zip</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="contactPincode" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-pad">
+                            <div class="form-group">
+                                <label class="col-sm-3">Country</label>
+                                <div class="col-sm-3">
+                                    <select class="form-control" id="contactCountry">
+                                        @foreach (var country in Model.Countries)
+                                        {
+                                            <option value="@country.Id">@country.CountryName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-link-contacts">Add Selected Contacts</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-contacts" style="display:none;">Save and Link Contact</button>
+                    <button type="button" class="btn btn-success" id="btn-cancel-contacts" style="display:none;">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-viewcontact-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Contact Details</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-8">
+                            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                            <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
+                                <div class="well profile_view">
+                                    <div class="col-sm-12">
+                                        <h4 class="brief" id="contact-detail-desig"><i> </i></h4>
+                                        <div class="left col-xs-7">
+                                            <h2 id="contact-detail-name"> </h2>
+                                            <p><strong>Organization: </strong> <span id="contact-detail-org"></span> </p>
+                                            <ul class="list-unstyled">
+                                                <li><i class="fa fa-building"></i><strong>Address: </strong><span id="contact-detail-address"></span></li>
+                                                <li><i class="fa fa-phone"></i> <strong>Landline #: </strong> <span id="contact-detail-landline"></span></li>
+                                                <li><i class="fa fa-phone"></i><strong> Fax #: </strong><span id="contact-detail-fax"></span></li>
+                                                <li><i class="fa fa-mobile"></i><strong>Cellphone #:</strong> <span id="contact-detail-cellphone"></span></li>
+                                                <li><i class="fa fa-email"></i> <strong>Email #: </strong><span id="contact-detail-email"></span></li>
+                                            </ul>
+                                        </div>
+                                        <div class="right col-xs-5 text-center">
+                                            <img src="~/Content/localImages/img.jpg" width="128" height="128" id="ContactImage" alt="" class="img-circle img-responsive">
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-xs-12 bottom text-center"> -->
+                                    <!-- <div class="col-xs-12 col-sm-6 emphasis"> -->
+                                    <!-- <p class="ratings"> -->
+                                    <!-- <a>4.0</a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star-o"></span></a> -->
+                                    <!-- </p> -->
+                                    <!-- </div> -->
+                                    <!-- <div class="col-xs-12 col-sm-6 emphasis"> -->
+                                    <!-- <button type="button" class="btn btn-success btn-xs"> <i class="fa fa-user"> -->
+                                    <!-- </i> <i class="fa fa-comments-o"></i> </button> -->
+                                    <!-- <button type="button" class="btn btn-primary btn-xs"> -->
+                                    <!-- <i class="fa fa-user"> </i> View Profile -->
+                                    <!-- </button> -->
+                                    <!-- </div> -->
+                                    <!-- </div> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-project-timeline-modal-lg" id="projectTimeLine" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Update Project Timelines</h4>
+            </div>
+            <div class="modal-body">
+                <!--<div class="alert alert-warning alert-dismissible fade in" role="alert">Please be careful while editing Project details, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>-->
+                <div class="form-group">
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-3'>Timeline Title</div>
+                                <div class='col-sm-3'>
+                                    <input type="text" class="form-control" id="timeline-txt" required="" />
+                                </div>
+                                <div class='col-sm-3'>
+                                    Timeline Date
+                                </div>
+                                <div class='col-sm-3'>
+                                    <input type="text" class="form-control has-feedback-left datepicker" id="timeline-date" />
+                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:10px;">
+                            <div class='col-sm-12 text-center'>
+                                <button id="btn-add-timeline" class="btn btn-primary right">Add New Timeline</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12 timeline-list'>
+                                @foreach (var timeline in Model.TimeLines)
+                                {
+                                    <div class="col-sm-6 tm-data">
+                                        @timeline.ProjectTimeLine:
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:5px;">
+                                                        <input type="hidden" class="tm-data-id" value="@timeline.Id" />
+                                                        <input type="hidden" class="tm-data-title" value="@timeline.ProjectTimeLine" />
+                                                        <input type="text" class="form-control has-feedback-left datepicker tm-data-date"
+                                                               value="@timeline.TimelineDate" aria-describedby="inputSuccess2Status2" />
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" id="btn-update-timelines" class="btn btn-primary" data-dismiss="modal">Save changes</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-updateprogress-modal-lg" id="updateprogress" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Update Project Progress</h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Current Progress :</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label><strong><i><span id="currentStatusLbl">@projectStatus</span></i></strong></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Update Progress To:</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <select class="form-control" id="ddlStatus">
+                                    <option value="0">-Select-</option>
+                                    @foreach (var status in Model.ProjectStatuses)
+                                    {
+                                        <option value="@status.Id">@status.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="btn-close-progress-modal" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btn-save-progress">Update Progress</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addteam-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Team Member</h4>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("AddTeamMember", "Projects", FormMethod.Post))
+                {
+                    <input type="hidden" name="ProjectId" value="@Model.Id" />
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        @Html.DropDownList("Id", Model.AllUsers)
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-contracts">Add Member</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-map-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" id="changeMap">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Change Map</h4>
+            </div>
+            <div class="modal-body">
+                <div class="x_content">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                Map Type: <input type="radio" name="maptype" value="marker" checked="checked" /> Markers <input type="radio" name="maptype" value="route" /> Route
+                            </div>
+                            <div class="col-lg-6">
+                                Starting Address: <input id="address" name="address" val="" />
+                                <button onclick="callMap()">Load Map</button> <br />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mapper">
+                        <table id="project-locations" class="table table-striped"></table>
+                    </div>
+                    <div id="map_canvas" style="width: 100%; height: 325px;"></div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                @*Latitude:*@
+                                <input id="lat" name="lat" val="" style="display:none" />
+                                @*Longitude:*@
+                                <input id="long" name="long" val="" style="display:none" /> <br />
+                                Choose Color:
+                                <select id="color">
+                                    <option value="blue">Blue</option>
+                                    <option value="green" selected="selected">Green</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="purple">Purple</option>
+                                </select>
+                                <button onclick="addPos()">Add Marker</button> <br />
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-map">Save Map</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-updateloc-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Update Linked LOC Allocated Amount</h4>
+            </div>
+            @using (Html.BeginForm("UpdateLinkedLOCAmount", "Projects", FormMethod.Post))
+            {
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">LOC:</label>
+                                    <b><span id="updLocName"></span></b>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">Allocation ($):</label>
+                                    <input id="updLinkId" type="hidden" name="Id" value="0" />
+                                    <input id="updProjectId" type="hidden" name="ProjectId" value="@Model.Id" />
+                                    <input type="number" step="0.01" id="updAllocation" name="Allocation" class="form-control col-md-7 col-xs-12" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="updateLocBtn">Save changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-updateproject-code-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Update Project Code</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div>
+                                <label for="country-risk-categ">Project Code</label>
+                                <b><span id="updLocName"></span></b>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <div>
+                                <input id="updProjectId" type="hidden" name="projectId" value="@Model.Id" />
+                                <input id="updProjectCode" type="hidden" name="hidProjectCode" value="@Model.Code" />
+                                <input type="text" id="projectCodeTxt" name="code" class="form-control col-md-7 col-xs-12" required value="@Model.Code">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div>
+                                <span class="text-success" id="codeSuccessUpdate"></span>
+                                <span class="text-danger" id="codeErrorUpdate"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateProjectCodeBtn">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-removeloc-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+            </div>
+            @using (Html.BeginForm("RemoveLinkedLOC", "Projects", FormMethod.Post))
+            {
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div>
+                                    <strong><span>Are you sure to remove ?</span></strong>
+                                    <input id="rmProjectId" type="hidden" name="ProjectId" value="@Model.Id" />
+                                    <input id="rmLinkId" type="hidden" name="Id" value="0" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="removeLocBtn">Yes Remove</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-editpq-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add Prequalification Details </h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("AddPqDetail", "Projects", FormMethod.Post,  new { @id = "PqDetailForm", enctype = "multipart/form-data" }))
+                {
+                    <input type="hidden" id="PqId" name="Id" value="" />
+                    <input type="hidden" id="PqProjectId" name="ProjectId" value="@Model.Id" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ Reference Number :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="PQRefNumber" name="PQRefNumber" class="form-control" placeholder="" value="">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Category:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        @Html.DropDownList("Category", new SelectList(Model.PQCategories, "Value", "Text"), new { @class = "form-control", id = "CategorySelect" })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Addendum Reference Number :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="AddEndumRefno" name="AddEndumRefno" class="form-control" placeholder="" value="">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Project Cost:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="number" id="ProjectCost" name="ProjectCost" class="form-control" placeholder="" value="">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Application Start Date :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ApplicationStart" name="ApplicationStart" class="form-control has-feedback-left" placeholder="" value="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> Application End Date</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ApplicationEnd" name="ApplicationEnd" class="form-control has-feedback-left" placeholder="" value="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ documents published on :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="PqDocPublishedOn" name="PqDocPublishedOn" class="form-control has-feedback-left" placeholder="" value="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> Last date for submission:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="LastSubmissionOn" name="LastSubmissionOn" class="form-control has-feedback-left" placeholder="" value="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label>PQ Status</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.DropDownList("StatusId", new SelectList(Model.PQStatuses, "Value", "Text"), new { @class = "form-control", @id = "PqStatus" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="ProjectPQSigninDate"> Signing Date</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ProjectPQSigninDate" name="ProjectPQSigninDate" class="form-control has-feedback-left" placeholder="" value="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label>Status</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <textarea class="form-control" id="PqStatus" name="Status" rows="3" placeholder="Status"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row document-section">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ document:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="hidden" name="PqFileId" value="0" />
+                                                        <input type="file" name="pqFile" id="pq-file" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> DPR Document</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="hidden" name="DprFileId" value="0" />
+                                                        <input type="file" name="dprFile" id="dpr-file" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:5px;">
+                            <div class='col-sm-12'>
+                                <label class="alert bg-green" style="padding:2px;margin-bottom:0px;"><b>Supported File Types :</b>Pdf, Word, Excel, PNG, JPG </label>
+                                <br />
+                                <label class="alert alert-warning" style="padding:2px;margin-top:5px; margin-bottom:0px;">File size should be less than 5MB.</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        //<![CDATA[
+         $('#ApplicationStart').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ApplicationEnd').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#PqDocPublishedOn').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#LastSubmissionOn').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ProjectPQSigninDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        
+        function refreshTable() {
+            var tableScript = '<thead><tr><th>No</th><th>Latitude</th><th>Longitude</th><th>Color</th></tr></thead><tbody>';
+            for (i = 0; i < markerList.length; i++) {
+                //alert(markerList[i].Id);
+                tableScript += '<tr><td>' + markerList[i].Id + '</td>';
+                tableScript += '<td>' + markerList[i].lat + '</td>';
+                tableScript += '<td>' + markerList[i].lon + '</td>';
+                tableScript += '<td>' + markerList[i].color + '</td></tr>';
+            }
+            tableScript += "</tbody>";
+            document.getElementById("project-locations").innerHTML = tableScript;
+        }
+
+        var marker = {
+            Id: 'id',
+            lat: 'lat',
+            lat: 'lon',
+            color: 'color'
+        }
+
+        var markerList = [];
+
+        function addPos() {
+
+            var e = document.getElementById("color");
+            var marker = {
+                Id: (markerList.length + 1).toString(),
+                lat: document.getElementById("lat").value,
+                lon: document.getElementById("long").value,
+                color: e.options[e.selectedIndex].value,
+            }
+
+            if (marker.lat != '' && marker.lon != '') {
+                markerList.push(marker);
+
+                var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+                var markero = new google.maps.Marker({
+                    position: new google.maps.LatLng(document.getElementById("lat").value, document.getElementById("long").value),
+                    map: map,
+                    draggable: true,
+                    icon: image
+                });
+                //markero.setMap(map);
+
+                console.log(markerList);
+            }
+            refreshTable();
+        }
+
+        function callMap() {
+            initaddress = document.getElementById("address").value;
+            google.maps.event.addDomListener(window, "load", initialize());
+        }
+
+        //window.onload=function(){}
+
+        var initaddress = 'Vancouver, BC';
+
+        function initialize() {
+            var geocoder1 = new google.maps.Geocoder();
+            setCenter(geocoder1, initaddress);
+        }
+
+        function setCenter(geocoder, address) {
+            geocoder.geocode({
+                'address': address
+            }, function (results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    var myOptions = {
+                        zoom: 8,
+                        center: results[0].geometry.location,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    };
+                    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                    var marker = new google.maps.Marker({
+                        draggable: true,
+                        position: results[0].geometry.location,
+                        map: map,
+                        title: "Your location"
+                    });
+                    google.maps.event.addListener(marker, 'dragend', function (event) {
+                        document.getElementById("lat").value = event.latLng.lat();
+                        document.getElementById("long").value = event.latLng.lng();
+                        //infoWindow.open(map, marker);
+                    });
+                }
+                else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                    // return null;
+                }
+            });
+        }
+        //]]>
+    </script>
+    <script src="https://code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=@StringMapperService.GetValue("GoogleAPIKey")"></script>
+
+}
+
+
+

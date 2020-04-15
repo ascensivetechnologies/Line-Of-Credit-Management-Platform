@@ -1,0 +1,210 @@
+﻿@model AMP.ViewModels.Dashboad2.TermsModel
+
+<div class="">
+    <div class="page-title">
+        <div class="title_left">
+            <h3>Terms Details <small></small></h3>
+        </div>
+
+    </div>
+    <div class="clearfix"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <p>Manage Term Details</p>
+                        <!-- start project list -->
+
+                        @using (Html.BeginForm())
+                        {
+                            <div class="x_content">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-risk-categ">Risk Category Classification :</label>
+                                                    @Html.DropDownListFor(e => e.RiskClassification, Model.RiskClassifications, new { @id = "country-risk-categ", @class = "form-control", tabindex = "-1" })
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-loc-categ">LOC Guidelines Classification :</label>
+                                                    @Html.DropDownListFor(e => e.LOCClassification, Model.LOCClassifications, new { @id = "country-loc-categ", @class = "form-control", tabindex = "-1" })
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-commitment-fee">Commitment Fee (%): <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.CommitmentFee, new { htmlAttributes = new { @id = "country-commitment-fee", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Commitment Rate " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-management-fee">Management Fee (%): <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.ManagementFee, new { htmlAttributes = new { @id = "country-management-fee", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Management Rate " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <label for="country-interest">Interest:</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Type:</label>
+                                                    @Html.DropDownListFor(e => e.InterestType, Model.Types, new { @id = "int-type", @class = "form-control", tabindex = "-1" })
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Interest Rate (%): <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.InterestRate, new { htmlAttributes = new { @id = "country-interest", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Interest Rate " } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <label for="country-interest">Interest Equalization:</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-interest">Type:</label>
+                                                    @Html.DropDownListFor(e => e.Type, Model.Types, new { @id = "country-int-equ-type", @class = "form-control", tabindex = "-1" })
+                                                    @*<select class="form-control" tabindex="-1" id="country-int-equ-type">
+                                                            <option value="CLL06" disabled selected>CLL06</option>
+                                                            <option value="ZEROL">ZEROL</option>
+                                                        </select>*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-currency-code">Percentage: <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.Percentage, new { htmlAttributes = new { @id = "Percentage", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "%age " } })
+                                                    @*<input type="text" id="country-int-equ-per" name="country-name" class="form-control col-md-7 col-xs-12" placeholder="%age ">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-currency-code">Approval :</label>
+                                                    @Html.DropDownListFor(e => e.ApprovalType, Model.ApprovalTypes, new { @id = "ApprovalType", @class = "form-control", tabindex = "-1" })
+                                                    @*<select class="form-control" tabindex="-1" id="country-int-equ-app">
+                                                            <option value="MEA" disabled selected>MEA</option>
+                                                            <option value="DEA">DEA</option>
+                                                            <option value="Other">Others</option>
+                                                        </select>*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-special-conditions" >Special Conditions: <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.SpecialConditions, new { htmlAttributes = new { @id = "country-management-fee", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Special Condtions " } })
+                                                    @*<input type="text" rows='3' id="country-special-conditions" name="country-name" required="required" class="form-control col-md-7 col-xs-12" placeholder="Special Condtions ">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="">Tenure in Years: <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.YearTenure, new { htmlAttributes = new { @id = "country-tenure", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Tenure " } })
+                                                    @*<input type="text" id="country-tenure" name="country-name" required="required" class="form-control col-md-7 col-xs-12" placeholder="Tenure ">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-monatarium">Moratorium in Years: <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.MoratoriumYears, new { htmlAttributes = new { @id = "country-monatarium", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Moratorium " } })
+                                                    @*<input type="text" id="country-monatarium" name="country-name" class="form-control col-md-7 col-xs-12" placeholder="Moratorium ">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <div>
+                                                    <label for="country-indian-contribution">Indian Content Requirement (%): <span class="red">*</span></label>
+                                                    @Html.EditorFor(e => e.ICR, new { htmlAttributes = new { @id = "country-indian-contribution", @required = "required", @class = "form-control col-md-7 col-xs-12", @placeholder = "Indian Contribution " } })
+                                                    @*<input type="text" id="country-indian-contribution" name="country-name" required="required" class="form-control col-md-7 col-xs-12" placeholder="Indian Contribution ">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-5">
+                                    <a href="@Url.Action("Index","Terms")" class="btn btn-primary">Cancel</a>
+                                    <button type="submit" class="btn btn-success">Submit</button>
+                                </div>
+                            </div>
+                        }
+                        @*<form id="country-detail-form" data-parsley-validate class="form-horizontal form-label-left">
+
+                            </form>*@
+                    </div>
+                </div>
+
+                <!-- end project list -->
+            </div>
+        </div>
+    </div>
+</div>
+
+

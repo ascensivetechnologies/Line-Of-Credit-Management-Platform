@@ -1,0 +1,1014 @@
+﻿@model AMP.ViewModels.Dashboad2.PqDetailPageModel
+@using AMP.Authentication;
+@using System.Globalization;
+@using AMP.Utilities;
+@{
+    ViewBag.Title = "Detail";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+<link href="/Content/Dashboard2/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<script src="/Content/Dashboard2/vendors/pnotify/dist/pnotify.js"></script>
+<style>
+    .row-pad {
+        margin-top: 5px;
+    }
+
+    .btn-lgp {
+        padding: 10px 16px;
+        font-size: 12px;
+        line-height: 1.3333333;
+        border-radius: 6px;
+    }
+
+    .message {
+        font-size: 13.5px;
+    }
+
+    .linkbtn {
+        padding: 1px 5px !important;
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+        color: #fff !important;
+    }
+
+        .linkbtn:hover {
+            background-color: #f0ad4e !important;
+        }
+</style>
+<script>
+    var selectedApplicantId = 0;
+    var selectedApplicantName = '';
+    var selectedApplicantOrg = '';
+    var selectedApplicantStatus = 'Pending';
+    function selectApplicant(id, name, org, pqStatus) {
+        selectedApplicantId = id;
+        selectedApplicantName = name;
+        selectedApplicantOrg = org;
+        selectedApplicantStatus = pqStatus;
+    }
+    function showNotification(name, type, title) {
+            new PNotify({
+                title: title,
+                text: name,
+                type: type,
+                styling: 'bootstrap3'
+            });
+    };
+    function deleteFile(fileId, fileFor) {
+        if (fileFor == 'DprDoc') {
+            $(".dprFileUploadDiv").show();
+            $(".dprFileDiv").hide();
+        }
+        else if (fileFor == 'PqDoc') {
+            $(".pqFileUploadDiv").show();
+            $(".pqFileDiv").hide();
+        }
+    }
+    @if (ViewData.ContainsKey("JavascriptFunction"))
+    {
+        @Html.Raw(ViewData["JavascriptFunction"].ToString())
+    }
+    $(document).ready(function () {
+        $(".bs-pqapplicants-modal-lg").on("show.bs.modal", function (e) {
+            $("#ApplicantId").val(selectedApplicantId);
+            $("#ApplicantName").val(selectedApplicantName);
+            $("#ApplicantOrg").val(selectedApplicantOrg);
+            $("#ApplicantStatus").val(selectedApplicantStatus);
+        });
+        $(".bs-editpq-modal-lg").on("hide.bs.modal", function (e) {
+            window.location.href = "@Url.Action("Detail", new {id = Model.PqDetail.Id })";
+        });
+        const fileValidation = function(){
+            var ext = $('#pq-file').val().split('.').pop().toLowerCase();
+            var ext2 = $('#dpr-file').val().split('.').pop().toLowerCase();
+            if ($('#pq-file').val()) {
+                if ($.inArray(ext, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid PQ File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("pq-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("PQ File size must be less than 5MB");
+                    return false;
+                }
+            }
+            }
+            if ($('#dpr-file').val()) {
+                if ($.inArray(ext2, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid DPR File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("dpr-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("DPR File size must be less than 5MB");
+                    return false;
+                }
+            }
+            }
+            return true;
+        }
+        const pqFormValidate = function () {
+            if (!$("#pq-file").val() && $(".pqFileUploadDiv").css('display') == 'block') {
+                alert("PQ file is required");
+                return false;
+            }
+            if ($("#CategorySelect").val() == 'DPR' && $(".dprFileUploadDiv").css('display') == 'block') {
+                if (!$('#dpr-file').val()) {
+                    alert("DPR file is required");
+                    return false;
+                }
+            }
+            return true;
+        }
+        $("#PqDetailForm").on("submit", function (e) {
+            if (pqFormValidate()) {
+                if (!fileValidation()) {
+                    e.preventDefault();
+                }
+            } else {
+                e.preventDefault();
+            }
+        });
+
+    });
+</script>
+<div class="">
+
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><a class="glyphicon-link blue" href="@Url.Action("Edit", "Projects", new {id = Model.PqDetail.ProjectId })">Project></a> PQ Details </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a class="btn btn-primary linkbtn" href="@Url.Action("Edit", "Projects", new {id = Model.PqDetail.ProjectId })">Back to Project</a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="x_content">
+
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Prequalification Details <small>Details captured from the eProcurement system.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li><button type="button" class="btn btn-xs btn-warning edit-pq-btn" data-toggle="modal" data-target=".bs-editpq-modal-lg">Edit Prequalification</button></li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <div class="row">
+                                    <div class='col-sm-6'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Application start date</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.ApplicationStart))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.ApplicationStart</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Application end date</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.ApplicationEnd))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.ApplicationEnd</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>PQ documents published on</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.PqDocPublishedOn))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.PqDocPublishedOn</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Last date for submission</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.LastSubmissionOn))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.LastSubmissionOn</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Contract Signing date</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.ProjectPQSigninDate))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.ProjectPQSigninDate</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-6'>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>PQ reference number</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.PQRefNumber))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.PQRefNumber</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Addendum Ref No.</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.AddEndumRefno))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.AddEndumRefno</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Project Cost for which PQ is being /was undertaken(USD mn)</h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    <h5 class="green">@Model.PqDetail.ProjectCost</h5>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class='col-sm-4'><h5>Category </h5></div>
+                                            <div class='col-sm-8'>
+                                                <fieldset>
+                                                    @if (!string.IsNullOrEmpty(Model.PqDetail.Category))
+                                                    {
+                                                        <h5 class="green">@Model.PqDetail.Category</h5>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h5> NA</h5>
+                                                    }
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="x_panel">
+                                    <div class="x_title">
+                                        <h2><small><strong>Applicants</strong></small></h2>
+                                        <ul class="nav navbar-right panel_toolbox">
+                                            @if (user.IsInRole("DeskOfficer"))
+                                            {
+                                                <li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-pqapplicants-modal-lg" onclick="selectApplicant(0, '', '', 'Pending');">Add Applicants</button></li>
+                                            }
+                                        </ul>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="x_content">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Name</th>
+                                                    <th>Organization</th>
+                                                    <!--<th>Prequalified</th>-->
+                                                    <th>Status</th>
+                                                    <th>Edit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @{
+                                                    int sno = 1;
+                                                }
+
+                                                @if (Model.PqDetail.Applicants == null || !Model.PqDetail.Applicants.Any())
+                                                {
+                                                    <tr>
+                                                        <td colspan="4">No records to show</td>
+                                                    </tr>
+                                                }
+                                                else
+                                                {
+                                                    foreach (var applicant in Model.PqDetail.Applicants ?? new List<AMP.ViewModels.Dashboad2.ApplicantsModel>())
+                                                    {
+                                                        <tr>
+                                                            @*<th scope="row">@applicant.ApplicantNo</th>*@
+                                                            <th scope="row">@sno</th>
+                                                            <td>@applicant.Name</td>
+                                                            <td>@applicant.Organization</td>
+                                                            <td>
+                                                                @*@if (applicant.PreQualified)
+                                                                    {
+                                                                       <button type="button" class="btn btn-xs btn-success"><i class="fa fa-check-square m-right-xs"></i></button>
+                                                                    }*@
+                                                                @applicant.Status
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-xs btn-warning" data-toggle="modal" onclick="selectApplicant(@applicant.Id, '@applicant.Name', '@applicant.Organization', '@applicant.StatusId');" data-target=".bs-pqapplicants-modal-lg">Edit</button>
+                                                            </td>
+                                                        </tr>
+                                                        sno++;
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class='col-sm-2'><h5><strong>Status</strong></h5></div>
+                                        <div class='col-sm-8'>
+                                            <fieldset>
+                                                @if (!string.IsNullOrEmpty(Model.PqDetail.Status))
+                                                {
+                                                    <p class="help-block">@Model.PqDetail.Status</p>
+                                                }
+                                                else
+                                                {
+                                                    <h5> NA</h5>
+                                                }
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Contract List <small>The following Contracts are included in this Project</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <li>
+                                            <a class="btn btn-xs btn-warning linkbtn" href='@Url.Action("Create", "Contract", new { pqId = Model.PqDetail.Id })'>Create Contract</a>
+                                        </li>
+                                    }
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            @{
+                                sno = 1;
+                            }
+                            <div class="x_content">
+                                <table id="project-contracts" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Contract Id</th>
+                                            <th>Contract Name</th>
+                                            <th>Package Display Id</th>
+                                            <th>Approved Value</th>
+                                            <th>Type Of Package</th>
+                                            <th>PQ No.</th>
+                                        </tr>
+                                    </thead>
+                                    @if (Model.PqDetail.PQContracts != null && Model.PqDetail.PQContracts.Any())
+                                    {
+                                        <tbody>
+                                            @foreach (var contract in Model.PqDetail.PQContracts)
+                                            {
+                                                <tr>
+                                                    <td>@sno</td>
+                                                    <td><a class="green" href='@Url.Action("ContractDetail", "Contract", new {id = contract.ContractId})'>@(string.IsNullOrEmpty(contract.PackageId) ? "NA" : contract.PackageId)
+                                                    <td>@(string.IsNullOrEmpty(contract.PackageName) ? "NA" : contract.PackageName)</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.PackageDisplayId) ? "NA" : contract.PackageDisplayId)</td>
+                                                    <td>@(contract.EstimateValue == null ? "0" : string.Format("$ {0:n2}", contract.EstimateValue))</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.TypeOfPackage) ? "NA" : contract.TypeOfPackage)</td>
+                                                    <td>@(string.IsNullOrEmpty(contract.PqNo) ? "NA" : contract.PqNo)</td>
+                                                </tr>
+                                                sno += 1;
+                                            }
+                                        </tbody>
+                                    }
+                                    else
+                                    {
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="7">No contracts are included in project yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- start project-detail sidebar -->
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+                        <section class="panel">
+                            <div class="x_title">
+                                <h2>Pq Reference</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="panel-body">
+                                <h3 class="green"><i class="fa fa-gear"></i> PQ Name</h3>
+
+                                <p><b>Description</b></p>
+                                <p>NA</p>
+                                <br />
+
+                                <div class="project_detail">
+                                    @*
+                                    <p class="title">Project Sector</p>
+                                    <p class="title"><i class="fa @Model.SectorFaIcon"></i> @(string.IsNullOrEmpty(Model.SectorName) ? "NA" : Model.SectorName)</p>
+                                    <p>@Model.SubsectorName</p>
+
+                                    <p class="title">Team Details</p>
+                                    *@
+                                </div>
+
+                                <br />
+                                <p class="title">Files</p>
+                                <ul class="list-unstyled project_files">
+                                    @foreach (var file in Model.PqDetail.Files)
+                                    {
+                                        <li>
+                                            @if (user.IsInRole("DeskOfficer"))
+                                            {
+                                                <a href="@file.Src"><i class="fa fa-file"></i> @file.DisplayName</a>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa fa-file"></i> @file.DisplayName
+                                            }
+
+                                        </li>
+                                    }
+                                    @if (Model.PqDetail.Files == null || !Model.PqDetail.Files.Any())
+                                    {
+                                        <li><span>No files uploaded yet.</span></li>
+                                    }
+                                </ul>
+                            </div>
+
+                        </section>
+                        @*
+                        <!-- start of user messages -->
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div>
+                                <div class="x_title">
+                                    <h2>Note</h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <ul class="list-unstyled scroll-view">
+
+                                    <li class="media event">
+                                        <div class="media-body">
+                                            <p>@Model.Note</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        }*@
+                        <div>
+                            <div class="x_title">
+                                <h2>Recent Activity</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <ul class="list-unstyled top_profiles scroll-view">
+
+                                @foreach (var activity in Model.Activity ?? new List<AMP.ViewModels.Dashboad2.ActivityModel>())
+                                {
+                                    <li class="media event">
+                                        <a class="pull-left">
+                                            @if (string.IsNullOrWhiteSpace(activity.Image))
+                                            {
+                                                <img src="~/Content/localImages/img.jpg" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                            else
+                                            {
+                                                <img src="@activity.Image" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                        </a>
+                                        <div class="media-body">
+                                            <a class="title" href="#">@activity.Name</a>
+                                            <p><strong></strong> @activity.Description </p>
+                                            @if (!string.IsNullOrWhiteSpace(activity.AttachmentURL))
+                                            {
+                                                <p class="url">
+                                                    <span class="fs1 text-info" aria-hidden="true" data-icon=""></span>
+                                                    <a href="@activity.AttachmentURL"><i class="fa fa-paperclip"></i> @activity.AttachmentName </a>
+                                                </p>
+                                            }
+                                            <p>
+                                                <small>@activity.LogTime</small>
+                                            </p>
+                                        </div>
+                                    </li>
+
+                                }
+                                @if (Model.Activity == null || !Model.Activity.Any())
+                                {
+                                    <li><span>No recent activity to show.</span></li>
+                                }
+                            </ul>
+                        </div>
+                        <!-- end of user messages -->
+                    </div>
+                    <!-- end project-detail sidebar -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-editpq-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit Prequalification Details </h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("UpdatePqDetail", "Pq", FormMethod.Post, new { @id = "PqDetailForm", enctype = "multipart/form-data" }))
+                {
+                    <input type="hidden" id="PqId" name="Id" value="@Model.PqDetail.Id" />
+                    <input type="hidden" id="PqProjectId" name="ProjectId" value="@Model.PqDetail.ProjectId" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ Reference Number :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="PQRefNumber" name="PQRefNumber" class="form-control" placeholder="" value="@Model.PqDetail.PQRefNumber">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Category:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        @Html.DropDownList("Category", new SelectList(Model.PQCategories, "Value", "Text", Model.PqDetail.Category), new { @class = "form-control", id = "CategorySelect" })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Addendum Reference Number :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="AddEndumRefno" name="AddEndumRefno" class="form-control" placeholder="" value="@Model.PqDetail.AddEndumRefno">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ">Project Cost:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="number" id="ProjectCost" name="ProjectCost" class="form-control" placeholder="" value="@Model.PqDetail.ProjectCost">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Application Start Date :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ApplicationStart" name="ApplicationStart" class="form-control has-feedback-left" placeholder="" value="@Model.PqDetail.ApplicationStart">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> Application End Date</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ApplicationEnd" name="ApplicationEnd" class="form-control has-feedback-left" placeholder="" value="@Model.PqDetail.ApplicationEnd">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ documents published on :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="PqDocPublishedOn" name="PqDocPublishedOn" class="form-control has-feedback-left" placeholder="" value="@Model.PqDetail.PqDocPublishedOn">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> Last date for submission:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="LastSubmissionOn" name="LastSubmissionOn" class="form-control has-feedback-left" placeholder="" value="@Model.PqDetail.LastSubmissionOn">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label>PQ Status</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        @Html.DropDownList("StatusId", new SelectList(Model.PQStatuses, "Value", "Text", Model.PqDetail.StatusId), new { @class = "form-control", @id = "PqStatus" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">Contract Signing Date :</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="ProjectPQSigninDate" name="ProjectPQSigninDate" class="form-control has-feedback-left" placeholder="" value="@Model.PqDetail.ProjectPQSigninDate">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label>Status</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <textarea class="form-control" id="PqStatus" name="Status" rows="3" placeholder="Status">@Model.PqDetail.Status</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row document-section">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-cif">PQ document:</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        @{
+                                                            var hasFile = Model.PqDetail.Files.Any() &&
+                                                            Model.PqDetail.Files.Where(m => m.FileFor.Equals(Constants.PQ_File)).Any();
+                                                            if (hasFile)
+                                                            {
+                                                                var pqFile = Model.PqDetail.Files.Where(m => m.FileFor.Equals(Constants.PQ_File)).First();
+                                                                <div class="pqFileDiv">
+                                                                    <input type="hidden" name="PqFileId" value="@pqFile.Id" />
+                                                                    @if (user.IsInRole("DeskOfficer"))
+                                                                    {
+                                                                        <a href="@pqFile.Src"><i class="fa fa-file"></i> @pqFile.DisplayName</a>
+                                                                        <button class="btn btn-link" type="button" style="margin-bottom:0px;" onclick="deleteFile(@pqFile.Id, 'PqDoc')"><i class="fa fa-remove"></i></button>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <i class="fa fa-file"></i> @pqFile.DisplayName
+                                                                    }
+                                                                </div>
+                                                            }
+                                                            <div class="pqFileUploadDiv" style="display:@(hasFile ? "none": "normal")">
+                                                                <input type="file" name="pqFile" id="pq-file" />
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="country-risk-categ"> DPR Document</label>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        @{
+                                                            hasFile = Model.PqDetail.Files.Any() &&
+                                                            Model.PqDetail.Files.Where(m => m.FileFor.Equals(Constants.PQ_DPR)).Any();
+                                                            if (hasFile)
+                                                            {
+                                                                var dprFile = Model.PqDetail.Files.Where(m => m.FileFor.Equals(Constants.PQ_DPR)).First();
+                                                                <div class="dprFileDiv">
+                                                                    <input type="hidden" name="DprFileId" value="@dprFile.Id" />
+                                                                    @if (user.IsInRole("DeskOfficer"))
+                                                                    {
+                                                                        <a href="@dprFile.Src"><i class="fa fa-file"></i> @dprFile.DisplayName</a>
+                                                                        <button type="button" class="btn btn-link" style="margin-bottom:0px;" onclick="deleteFile(@dprFile.Id, 'DprDoc')"><i class="fa fa-remove"></i></button>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <i class="fa fa-file"></i> @dprFile.DisplayName
+                                                                    }
+                                                                </div>
+                                                            }
+                                                            <div class="dprFileUploadDiv" style="display:@(hasFile ? "none": "normal")">
+                                                                <input type="file" name="dprFile" id="dpr-file" />
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:5px;">
+                            <div class='col-sm-12'>
+                                <label class="alert bg-green" style="padding:2px;margin-bottom:0px;"><b>Supported File Types :</b>Pdf, Word, Excel, PNG, JPG </label>
+                                <br />
+                                <label class="alert alert-warning" style="padding:2px;margin-top:5px; margin-bottom:0px;">File size should be less than 5MB.</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-pqapplicants-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Applicant Details </h4>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                @using (Html.BeginForm("SaveApplicantsDetails", "Pq", FormMethod.Post))
+                {
+                    <input type="hidden" id="ApplicantPqId" name="PqId" value="@Model.PqDetail.Id" />
+                    <input type="hidden" id="ApplicantId" name="Id" />
+                    <div class="">
+                        <div class="row">
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <div>
+                                        <label>Name:</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="ApplicantName" name="Name" class="form-control" placeholder="">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <div>
+                                        <label>Organization Name:</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        <input type="text" id="ApplicantOrg" name="Organization" class="form-control" placeholder="">
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <div>
+                                        <label>Applicant Status:</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx">
+                                                        @Html.DropDownList("StatusId", new SelectList(Model.ApplicantStatuses, "Value", "Text"), new { @class = "form-control", @id = "ApplicantStatus" })
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $('#ApplicationStart').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ApplicationEnd').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#PqDocPublishedOn').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#LastSubmissionOn').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#ProjectPQSigninDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        
+    </script>
+}

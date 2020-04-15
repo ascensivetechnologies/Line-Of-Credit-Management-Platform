@@ -1,0 +1,1316 @@
+﻿@model AMP.ViewModels.Dashboad2.LOCModel
+@using AMP.Authentication
+
+@{
+    ViewBag.Title = "View";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+    var user = UserConversion.Convertuser();
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.20.0/slimselect.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.20.0/slimselect.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css" />
+<script>
+
+    var selectedContactId = 0;
+    const setSelectedContactId = function (id) {
+        selectedContactId = id;
+    }
+
+    $(document).ready(function () {
+
+        var select = new SlimSelect({
+            select: '.projectDropDown',
+            placeholder: 'Select a project',
+            searchingText: 'Searching...',
+            allowDeselect: true,
+            ajax: function (search, callback) {
+                // Check search value. If you dont like it callback(false) or callback('Message String')
+                if (search.length < 3) {
+                    callback('Need 3 characters')
+                    return
+                }
+                $.ajax({ url: '@Url.Action("GetProjectsForLinking")', type: "GET", data: { locId: @Model.Id } })
+                 .done(function (data) {
+                     var selectData = [];
+                     for (i = 0; i < data.Projects.length; i++) {
+                         selectData.push({value: data.Projects[i].Id, text: data.Projects[i].Name})
+                     }
+                     callback(selectData)
+                 })
+                 .fail(function () {
+                     callback(false);
+                 });
+
+            }
+        });
+
+        $("#closeProjectBtn").on("click", function () {
+            select.set('');
+        });
+
+        $("#saveProjectForm").on("submit", function (e) {
+            e.preventDefault();
+            if(linkFormValidation()){
+                var model = {
+                    LocId : @Model.Id,
+                    ProjectId: select.selected(),
+                    Allocation: $("#allocation").val()
+                }
+                $.ajax(
+                    { url: '@Url.Action("LinkProjectToLOC")',
+                        type: "POST",
+                        data: { project: model } })
+                    .done(function (data) {
+                        window.location.href = '/Loc/Edit/' + @Model.Id;
+                    })
+                    .fail(function () {
+                        alert("Unable to link project details!");
+                    });
+            }
+        });
+
+        const linkFormValidation = function(){
+            var selectedProject = select.selected();
+            var allocation =$("#allocation").val();
+            if(!selectedProject){
+                alert("A project must be selected.");
+                return false;
+            }
+            if(isNaN(allocation) == true){
+                alert("Allocation should be in numeric.");
+                return false;
+            }
+            return true;
+        }
+
+        $("#loc-confirmation-form").on("submit", function(e){
+            e.preventDefault();
+            var jmodel = {
+                LocId: @Model.Id,
+                Date: $("#Date").val(),
+                ConfirmedBy: $("#ConfirmedBy").val(),
+                Period: $("#Period").val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("AddBalanceConfirmation", "Loc")',
+                data: {model : jmodel},
+                type: 'post'
+            }).done(function(data){
+                window.location.href = '/Loc/Edit/' + @Model.Id;
+            })
+            .fail(function(){
+                alert("Unable to update balance confirmation.");
+            });
+        });
+
+        $("#loc-file-upload").on("submit", function(e){
+            e.preventDefault();
+            if(fileValidation()){
+                var formData = new FormData();
+                var file = document.getElementById("loc-file").files[0];
+                formData.append("File", file);
+                formData.append("LocId", @Model.Id);
+                $.ajax({
+                    type: 'POST',
+                    url: '/Loc/AddLocFile',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function (result) {
+                        window.location.href = '/Loc/Edit/' + @Model.Id;
+                    },
+                    error: function (xhr, status) {
+                        alert("Unable to upload file.");
+                    }
+                });
+            }
+        });
+
+        const fileValidation = function(){
+            var ext = $('#loc-file').val().split('.').pop().toLowerCase();
+            if ($.inArray(ext, ['doc', 'xls', 'docx', 'xlsx', 'pdf', 'png', 'jpg']) == -1) {
+                alert("Invalid File Format");
+                return false;
+            }
+            else {
+                var filesize = (document.getElementById("loc-file").files[0].size);
+                //5 mb check
+                if (filesize > (1024 * 1024 * 5)) {
+                    alert("File size must be less than 5MB");
+                    return false;
+                }
+            }
+            return true;
+        }
+        $("#addConfirmationBtn").on("click", function () {
+            // reset modal if it isn't visible
+            if (!($('.modal.in').length)) {
+                $('.modal-dialog').css({
+                    top: 0,
+                    left: 0
+                });
+            }
+            $('.app-modal').modal();
+        })
+        $('.modal-dialog').draggable();
+        $(".bs-amend-modal-lg, .bs-addproject-modal-lg, .bs-files-modal-lg, .bs-addteam-modal-lg, .bs-viewcontact-modal-lg").on('show.bs.modal', function () {
+            if (!($('.modal.in').length)) {
+                $('.modal-dialog').css({
+                    top: 0,
+                    left: 0
+                });
+            }
+        })
+    });
+</script>
+
+
+<div class="">
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><a href="@Url.Action("Index")" class="glyphicon-link blue">LOCs > </a>LOC Details </h2>
+                    @if (user.IsInRole("DeskOfficer"))
+                    {
+                        <a href="@Url.Action("EditLoc", new { Id = Model.Id })" class="btn btn-warning pull-right">Edit LOC Details</a>
+                    }
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="x_content">
+
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+
+                        <ul class="stats-overview">
+                            <li>
+                                <span class="name"> Amount Allocated </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.AmountAllocated) ? "-" : "$ " + Convert.ToDecimal(Model.AmountAllocated).ToString("0,0.00")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Sanctioned Amount </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.SanctionAmount) ? "-" : "$ " + Convert.ToDecimal(Model.SanctionAmount).ToString("0,0.00")) </span>
+                            </li>
+                            <li class="hidden-phone">
+                                <span class="name"> Associated Projects </span>
+                                <span class="value text-success"> @Model.AssociatedProjects </span>
+                            </li>
+                        </ul>
+
+                        <ul class="stats-overview">
+
+                            <li>
+                                <span class="name"> Amount Disbursed </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.AmountDisbursed) ? "-" : "$ " + Convert.ToDecimal(Model.AmountDisbursed).ToString("0,0.00")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Amount Repaid </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.PrincipalCollection) ? "-" : "$ " + Convert.ToDecimal(Model.PrincipalCollection).ToString("0,0.00")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Amount Outstanding </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.LoanOutstanding) ? "-" : "$ " + Convert.ToDecimal(Model.LoanOutstanding).ToString("0,0.00")) </span>
+                            </li>
+                        </ul>
+
+                        <ul class="stats-overview">
+
+                            <li>
+                                <span class="name"> Principal Overdue </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.PrincipalOverdue) ? "-" : "$ " + Convert.ToDecimal(Model.PrincipalOverdue).ToString("0,0.00")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Interest Overdue </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.InterestOverdue) ? "-" : "$ " + Convert.ToDecimal(Model.InterestOverdue).ToString("0,0.00")) </span>
+                            </li>
+                            <li>
+                                <span class="name"> Effective Date </span>
+                                <span class="value text-success">@(String.IsNullOrWhiteSpace(Model.EffectiveDate) ? "-" : Model.EffectiveDate) </span>
+                            </li>
+                        </ul>
+
+                        <br />
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>LOC Terms <small>The Terms of the LOC based on the Country Classification.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @*<li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edit-modal-lg">Edit</button></li>*@
+                                    <li>
+                                        <button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-amend-modal-lg">
+                                            Amendments <span class="badge badge-pill badge-info">
+                                                @((Model.Amendments ?? new List<AMP.ViewModels.Dashboad2.AmendmentsModel>()).Count - 1 < 0 ? 0 : (Model.Amendments ?? new List<AMP.ViewModels.Dashboad2.AmendmentsModel>()).Count - 1)
+                                            </span>
+                                        </button>
+                                    </li>
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <div class="x_content">
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>OM Number </h5></div>
+                                        <div class="col-md-3">
+                                            <fieldset>
+                                                <h5 class="green">@Model.OMNumber</h5>
+                                            </fieldset>
+                                        </div>
+                                        <div class='col-sm-3'><h5> </h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset>
+                                                <h5 class="green"> </h5>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>Terminal date of signing LOC </h5></div>
+                                        <div class="col-md-3">
+                                            <fieldset>
+                                                <h5 class="green">@Model.TerminalDate</h5>
+                                            </fieldset>
+                                        </div>
+                                        <div class='col-sm-3'><h5>Indian Content Requirement </h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.ICR%</h5>
+                                            </fieldset>
+                                        </div>
+                                        @*<div class='col-sm-3'><h5>Sanctionamount </h5></div>
+                                            <div class="col-md-3">
+                                                <fieldset>
+                                                    <h5 class="green">@Model.Sanctionamount</h5>
+                                                </fieldset>
+                                            </div>*@
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>Date of MD Approval</h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.MDDate</h5>
+                                            </fieldset>
+                                        </div>
+                                        <div class='col-sm-3'><h5>Date of Offer Letter</h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.OfferLetterDate</h5>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="flex">
+                                            <ul class="list-inline count2">
+                                                <li>
+                                                    @if (string.IsNullOrEmpty(Model.InterestType))
+                                                    {
+                                                        <h3>NA</h3>
+                                                    }
+                                                    else
+                                                    {
+                                                        <h3>@Model.InterestType + @Model.InterestRate%</h3>
+                                                    }
+
+                                                    <span>Interest Rate</span>
+                                                </li>
+                                                <li>
+                                                    <h3>@Model.CommitmentFee%</h3>
+                                                    <span>Committment Fees</span>
+                                                </li>
+                                                <li>
+                                                    <h3>@Model.ManagementFee%</h3>
+                                                    <span>Management Fees</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(Model.MeaType) || !string.IsNullOrEmpty(Model.DeaType))
+                                {
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="flex">
+                                                <ul class="list-inline count2">
+                                                    @if (!string.IsNullOrEmpty(Model.MeaType))
+                                                    {
+                                                        <li>
+                                                            @if (@Model.MeaPercentage != 0)
+                                                            {
+                                                                <h3>@Model.MeaType + @Model.MeaPercentage%</h3>
+                                                            }
+                                                            else
+                                                            {
+                                                                <h3>@Model.MeaType</h3>
+                                                            }
+                                                            <span>MEA Interest Equalization</span>
+                                                        </li>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(Model.DeaType))
+                                                    {
+                                                        <li>
+                                                            @if (@Model.DeaPercentage != 0)
+                                                            {
+                                                                <h3>@Model.DeaType + @Model.DeaPercentage%</h3>
+                                                            }
+                                                            else
+                                                            {
+                                                                <h3>@Model.DeaType</h3>
+                                                            }
+                                                            <span>DEA Interest Equalization</span>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="flex">
+                                            <ul class="list-inline count2">
+                                                <li>
+                                                    <h3>@Model.TenureYears Years</h3>
+                                                    <span>Tenure</span>
+                                                </li>
+                                                <li>
+                                                    <h3>@Model.Moratorium Years</h3>
+                                                    <span>Moratorium</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (!String.IsNullOrWhiteSpace(Model.SpecialCondition))
+                                {
+                                    <div class="col-sm-12">
+                                        <div class="flex">
+                                            <ul class="list-inline count">
+                                                <li>
+                                                    <span>* @Model.SpecialCondition</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Project List <small>The following Projects are funded from this LOC</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    <li>
+                                        @if (user.IsInRole("DeskOfficer"))
+                                        {
+                                            @*<button type="button" id="addProjectBtn" class="btn btn-xs btn-warning" data-toggle="modal" data-target=".bs-addproject-modal-lg">Add Project</button>*@
+                                        }
+                                    </li>
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                @{
+                                    int sno = 1;
+                                }
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            @*<th>No</th>*@
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            @*<th>Added</th>*@
+                                            <th>Project Value</th>
+                                            <th width="10%">Allocation</th>
+                                            <th>Financial Progress</th>
+                                            <th>Physical Progress</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.LocProjectGridData == null || !Model.LocProjectGridData.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="6">
+                                                    No Projects has been linked yet.
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.LocProjectGridData)
+                                            {
+                                                <tr>
+                                                    @*<th scope="row">@sno</th>*@
+                                                    <td><a class="green" href="@Url.Action("Edit","Projects",new { Id = record.ProjectId})"> @record.Code</a></td>
+                                                    <td>@record.Name</td>
+                                                    @*<td></td>*@
+                                                    @*@string.Format("$ {0:n0}", record.ProjectValue)*@
+                                                    <td align="right">@record.ProjectValue.ToString("0,0.00") </td>
+                                                    <td align="right">@record.Allocation.ToString("0,0.00") </td>
+                                                    @*<td>@record.FinancialProgress%</td>*@
+                                                    <td>
+                                                        <div class="progress progress_sm">
+                                                            <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@Convert.ToInt32(record.FinancialProgress)"></div>
+                                                        </div>
+                                                        <small>@Convert.ToInt32(record.FinancialProgress)% Complete</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress progress_sm">
+                                                            <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@Convert.ToInt32(record.PhysicalProgress)"></div>
+                                                        </div>
+                                                        <small>@Convert.ToInt32(record.PhysicalProgress)% Complete</small>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <br>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Payment Dates <small></small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    @*<li><button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target=".bs-edit-modal-lg">Edit</button></li>*@
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>1st Disbursment Under LOC </h5></div>
+                                        <div class="col-md-3">
+                                            <fieldset>
+                                                <h5 class="green">@Model.DisbursementUnderLoc</h5>
+                                            </fieldset>
+                                        </div>
+                                        <div class='col-sm-3'><h5></h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset></fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>Principal Repayment Start Date  </h5></div>
+                                        <div class="col-md-3">
+                                            <fieldset>
+                                                <h5 class="green">@Model.PrincipalRepaymentDate</h5>
+                                            </fieldset>
+                                        </div>
+                                        <div class='col-sm-3'><h5>Principal Repayment End Date </h5></div>
+                                        <div class='col-sm-3'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.PrincipalRepaymentDateEnd</h5>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>Interest Schedule</h5></div>
+                                        <div class='col-sm-9'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.InterestDueDate</h5>
+                                            </fieldset>
+                                        </div>
+                                        @*<div class='col-sm-3'><h5>Interest Due Date 2</h5></div>
+                                            <div class='col-sm-3'>
+                                                <fieldset>
+                                                    <h5 class="green">@Model.InterestDueDate2</h5>
+                                                </fieldset>
+                                            </div>*@
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class='col-sm-12'>
+                                        <div class='col-sm-3'><h5>Repayment Schedule</h5></div>
+                                        <div class='col-sm-9'>
+                                            <fieldset>
+                                                <h5 class="green">@Model.RepaymentDueDate</h5>
+                                            </fieldset>
+                                        </div>
+                                        @*<div class='col-sm-3'><h5>Repayment Due Date 2</h5></div>
+                                            <div class='col-sm-3'>
+                                                <fieldset>
+                                                    <h5 class="green">@Model.RepaymentDueDate2</h5>
+                                                </fieldset>
+                                            </div>*@
+                                    </div>
+                                </div>
+
+
+
+
+                            </div>
+                        </div>
+
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Balance Confirmation <small>The balance was confirmed as per the following schedule.</small></h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    <li>
+                                        @if (user.IsInRole("DeskOfficer"))
+                                        {
+                                            <button type="button" class="btn btn-xs btn-warning" id="addConfirmationBtn">
+                                                Add Confirmation
+                                            </button>
+                                        }
+                                    </li>
+                                    <li>
+                                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Date</th>
+                                            <th>Confirmed By</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Balanaces == null || !Model.Balanaces.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="4">
+                                                    No records found
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var record in Model.Balanaces ?? new List<AMP.ViewModels.Dashboad2.BalanceModel>())
+                                            {
+                                                <tr>
+                                                    <th scope="row">@record.Id</th>
+                                                    <td>@record.Date</td>
+                                                    <td>@record.ConfirmedBy</td>
+                                                    <td>@record.Period</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- start project-detail sidebar -->
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+
+                        <section class="panel">
+
+                            <div class="x_title">
+                                <h2>@Model.LOCNumber &nbsp;&nbsp; <span style="color: #1ABB9C !important;">@Model.SignedDate</span> </h2>&nbsp;&nbsp;
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="panel-body">
+                                <h3 class="green"><i class="fa fa-gear"></i> @Model.CountryName</h3>
+                                @*<h5>
+                                        <span class="name"> Amount Sanctioned </span><br />
+                                        <span class="value text-success">@Model.SanctionAmount </span>
+                                    </h5>*@
+                                <p>@Model.LocPurpose</p>
+                                <br />
+
+
+                                <div class="project_detail">
+                                    @*<p class="title">Effective Date</p>
+                                        <p>@Model.EffectiveDate</p>*@
+                                    <p class="title">Approved By</p>
+                                    <p class="title">@Model.ApprovedBy </p><h6 class="green">@Model.ApprovedOn</h6>
+
+                                    <p class="title">LOC Status Note</p>
+                                    <p>@Model.VerificationNote</p>
+
+                                    <p class="title">Team Details</p>
+                                    @foreach (var team in Model.TeamMembers)
+                                    {
+                                        <a class="green" href="javascript:void(0);" data-toggle="modal" data-target=".bs-viewcontact-modal-lg" onclick="setSelectedContactId(@team.ContactId)">@team.DisplayName</a>
+                                        if (user.IsInRole("Admin"))
+                                        {
+                                            <span aria-hidden="true" style="cursor: pointer">@Html.ActionLink("×", "RemoveTeamMember", "Loc", new { id = team.TeamId, LocId = Model.Id }, null)</span> <br />
+                                        }
+                                    }
+
+
+                                </div>
+
+
+                                <br />
+                                <p class="title">LOC Files</p>
+                                <ul class="list-unstyled project_files">
+                                    @if (Model.Files == null || !Model.Files.Any())
+                                    {
+                                        <li><i>No files uploaded yet.</i></li>
+                                    }
+                                    else
+                                    {
+                                        foreach (var file in Model.Files)
+                                        {
+                                            <li>
+                                                @if (user.IsInRole("DeskOfficer"))
+                                                {
+                                                    <a href="@file.Src"><i class="fa fa-file"></i> @file.DisplayName</a>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa fa-file"></i> @file.DisplayName
+                                                }
+
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+                                <br />
+
+                                <div class="text-center mtop20">
+                                    @if (user.IsInRole("DeskOfficer"))
+                                    {
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-files-modal-lg">Add files</a>
+                                    }
+                                    @if (user.IsInRole("Admin"))
+                                    {
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target=".bs-addteam-modal-lg">Add Team Member</a>
+                                    }
+                                </div>
+                            </div>
+
+                        </section>
+                        <!-- start of user messages -->
+                        <div>
+                            <div class="x_title">
+                                <h2>Recent Activity</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <ul class="list-unstyled top_profiles scroll-view">
+
+                                @foreach (var activity in Model.RecentActivty ?? new List<AMP.ViewModels.Dashboad2.ActivityModel>())
+                                {
+                                    <li class="media event">
+                                        <a class="pull-left">
+                                            @if (string.IsNullOrWhiteSpace(activity.Image))
+                                            {
+                                                <img src="~/Content/localImages/img.jpg" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                            else
+                                            {
+                                                <img src="@activity.Image" width="50" height="50" class="img-circle" alt="Avatar" />
+                                            }
+                                        </a>
+                                        <div class="media-body">
+                                            <a class="title" href="#">@activity.Name</a>
+                                            <p><strong></strong> @activity.Description </p>
+                                            @if (!string.IsNullOrWhiteSpace(activity.AttachmentURL))
+                                            {
+                                                <p class="url">
+                                                    <span class="fs1 text-info" aria-hidden="true" data-icon=""></span>
+                                                    <a href="@activity.AttachmentURL"><i class="fa fa-paperclip"></i> @activity.AttachmentName </a>
+                                                </p>
+                                            }
+                                            <p>
+                                                <small>@activity.LogTime</small>
+                                            </p>
+                                        </div>
+                                    </li>
+
+                                }
+                                @if (Model.RecentActivty == null || !Model.RecentActivty.Any())
+                                {
+                                    <li>
+                                        <span>No recent activity to show.</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <!-- end of user messages -->
+                    </div>
+                    <!-- end project-detail sidebar -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modals -->
+<div class="modal fade bs-edit-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Edit LOC Terms</h4>
+            </div>
+
+            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+            @using (Html.BeginForm("Edit", "Loc", FormMethod.Post))
+            {
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-3'>
+                                    LOC Signing Date
+                                </div>
+                                <div class="col-md-3">
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:10px;">
+                                                    @Html.EditorFor(e => e.SignedDate, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "SignedDate", @placeholder = "First test" } })
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-3'>
+                                    Terminal date of signing LOC
+                                </div>
+                                <div class="col-md-3">
+
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:10px;">
+                                                    @Html.EditorFor(e => e.TerminalDate, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "TerminalDate", @placeholder = "Terminal Date" } })
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div class='col-sm-3'>
+                                    Date of MEA/DEA Go-Ahead
+                                </div>
+                                <div class='col-sm-3'>
+
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:10px;">
+                                                    @Html.EditorFor(e => e.MeaDate, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "meadate", @placeholder = "First test" } })
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-3'>Date of MD Approval</div>
+                                <div class='col-sm-3'>
+
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:10px;">
+                                                    @Html.EditorFor(e => e.MDDate, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "mddate", @placeholder = "First test" } })
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div class='col-sm-3'>Date of Offer Letter</div>
+                                <div class='col-sm-3'>
+
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback" style="margin-bottom:10px;">
+                                                    @Html.EditorFor(e => e.OfferLetterDate, new { htmlAttributes = new { @class = "form-control has-feedback-left", @id = "offrdate", @placeholder = "First test" } })
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-4'>
+                                    Interest Rate (%)
+                                    @Html.EditorFor(e => e.InterestRate, new { htmlAttributes = new { @class = "form-control", @id = "intrate", required = "" } })
+                                </div>
+                                <div class='col-sm-4'>
+                                    Committment Fees (%)
+                                    @Html.EditorFor(e => e.CommitmentFee, new { htmlAttributes = new { @class = "form-control", @id = "comfee", required = "" } })
+                                </div>
+                                <div class='col-sm-4'>
+                                    Management Fees (%)
+                                    @Html.EditorFor(e => e.ManagementFee, new { htmlAttributes = new { @class = "form-control", @id = "manfee", required = "" } })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <label for="country-interest">MEA Interest Equalization:</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        Type:
+                                        @Html.DropDownListFor(e => e.MeaType, Model.Types, new { @class = "form-control" })
+                                        @*<select class="form-control" tabindex="-1" id="country-int-equ-type">
+                                                <option value="CLL06" disabled selected>CLL06</option>
+                                                <option value="ZEROL">ZEROL</option>
+                                            </select>*@
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        Percentage:
+                                        @Html.EditorFor(e => e.MeaPercentage, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "country-int-equ-per", @placeholder = "%age " } })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <label for="country-interest">DEA Interest Equalization:</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        Type:
+                                        @Html.DropDownListFor(e => e.DeaType, Model.Types, new { @class = "form-control" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <div>
+                                        Percentage:
+                                        @Html.EditorFor(e => e.DeaPercentage, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "country-int-equ-per", @placeholder = "%age " } })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-4'>
+                                    Tenure (years)
+                                    @Html.EditorFor(e => e.TenureYears, new { htmlAttributes = new { @class = "form-control", @id = "tenure", required = "" } })
+                                </div>
+                                <div class='col-sm-4'>
+                                    Moratorium (years)
+                                    @Html.EditorFor(e => e.Moratorium, new { htmlAttributes = new { @class = "form-control", @id = "moratorium", required = "" } })
+                                </div>
+                                <div class='col-sm-4'>
+                                    Indian Content Requirement (%)
+                                    @Html.EditorFor(e => e.ICR, new { htmlAttributes = new { @class = "form-control", @id = "indcon", required = "" } })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-12'>
+                                    Purpose of LOC:
+                                    @Html.TextAreaFor(x => x.LocPurpose, new { @class = "form-control", @rows = "2", @placeholder = "Purpose of LOC" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-amend-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Amendments</h4>
+            </div>
+            <div class="modal-body">
+                <h6>Following are the changes made to the LOC Terms since its creation. </h6>
+                @{ Html.RenderPartial("_Amendments", Model.Amendments); }
+                @*<div class="x_panel">
+                        <div class="x_content">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Date</th>
+                                        <th>Amended By</th>
+                                        <th>Designation</th>
+                                        <th>Amended</th>
+                                        <th>Old</th>
+                                        <th>New</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in Model.Amendments ?? new List<AMP.ViewModels.Dashboad2.AmendmentsModel>())
+                                    {
+                                        <tr>
+                                            <th scope="row">@record.Id</th>
+                                            <td>@record.Date</td>
+                                            <td>@record.AmendedBy</td>
+                                            <td>@record.Designation</td>
+                                            <th>@record.Amended</th>
+                                            <th>@record.Old</th>
+                                            <th>@record.New</th>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>*@
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addproject-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Link Project</h4>
+            </div>
+            <form id="saveProjectForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning alert-dismissible fade in" role="alert">Adding a Project will link a project to this LOC. Allocation must be from the available funds.</div>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">Select Project:</label>
+                                    <select class="projectDropDown">
+                                        <option data-placeholder="true"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <div>
+                                    <label for="country-risk-categ">Allocation ($):</label>
+                                    <input type="number" id="allocation" name="allocation" class="form-control col-md-7 col-xs-12" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="closeProjectBtn" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="saveProjectBtn">Save changes</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-confimation-modal-lg app-modal" tabindex="-1" role="dialog"
+     aria-labelledby="BalanceConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="BalanceConfirmationModalLabel">Add Balance Confirmation</h4>
+            </div>
+
+            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+            @using (Html.BeginForm("AddBalanceConfirmation", "Loc", FormMethod.Post, new { Id = "loc-confirmation-form" }))
+            {
+                <div class="modal-body">
+                    <input type="hidden" value="@Model.Id" name="LOCId" />
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div class='col-sm-4'>
+                                    Date
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                    <input id="Date" name="Date" class="form-control has-feedback-left" required="required" />
+                                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div class='col-sm-4'>
+                                    Confirmed By
+                                    <input type="text" id="ConfirmedBy" name="ConfirmedBy" class="form-control" required="required" placeholder="Confirmed By" />
+                                </div>
+                                <div class='col-sm-4'>
+                                    Note
+                                    <input type="text" id="Period" name="Period" class="form-control" required="required" placeholder="Note" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-files-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add LOC Files</h4>
+            </div>
+
+            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+            @using (Html.BeginForm("Edit", "Loc", FormMethod.Post, new { enctype = "multipart/form-data", id = "loc-file-upload" }))
+            {
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class='col-sm-12'>
+                                <div>
+                                    <input type="file" name="LocFile" id="loc-file" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:5px;">
+                            <div class='col-sm-12'>
+                                <label class="alert bg-green" style="padding:2px;margin-bottom:0px;"><b>Supported File Types :</b>Pdf, Word, Excel, PNG, JPG </label>
+                                <br />
+                                <label class="alert alert-warning" style="padding:2px;margin-top:5px; margin-bottom:0px;">File size should be less than 5MB.</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-addteam-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Team Member</h4>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("AddTeamMember", "Loc", FormMethod.Post))
+                {
+                    <input type="hidden" name="LocId" value="@Model.Id" />
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <div>
+                                        @Html.DropDownList("Id", Model.AllUsers)
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-contracts">Add Member</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade bs-viewcontact-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Contact Details</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-8">
+                            <!-- <div class="alert alert-danger alert-dismissible fade in" role="alert">Please be careful while editing LOC Terms, they will affect the lifecycle of the Project and may change associated Stakeholders.</div>                 -->
+                            <div class="col-md-12 col-sm-12 col-xs-12 profile_details">
+                                <div class="well profile_view">
+                                    <div class="col-sm-12">
+                                        <h4 class="brief" id="contact-detail-desig"><i> </i></h4>
+                                        <div class="left col-xs-7">
+                                            <h2 id="contact-detail-name"> </h2>
+                                            <p><strong>Organization: </strong> <span id="contact-detail-org"></span> </p>
+                                            <ul class="list-unstyled">
+                                                <li><i class="fa fa-building"></i><strong>Address: </strong><span id="contact-detail-address"></span></li>
+                                                <li><i class="fa fa-phone"></i> <strong>Landline #: </strong> <span id="contact-detail-landline"></span></li>
+                                                <li><i class="fa fa-phone"></i><strong> Fax #: </strong><span id="contact-detail-fax"></span></li>
+                                                <li><i class="fa fa-mobile"></i><strong>Cellphone #:</strong> <span id="contact-detail-cellphone"></span></li>
+                                                <li><i class="fa fa-email"></i> <strong>Email #: </strong><span id="contact-detail-email"></span></li>
+                                            </ul>
+                                        </div>
+                                        <div class="right col-xs-5 text-center">
+                                            <img src="~/Content/localImages/img.jpg" width="128" height="128" id="ContactImage" alt="" class="img-circle img-responsive">
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-xs-12 bottom text-center"> -->
+                                    <!-- <div class="col-xs-12 col-sm-6 emphasis"> -->
+                                    <!-- <p class="ratings"> -->
+                                    <!-- <a>4.0</a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star"></span></a> -->
+                                    <!-- <a href="#"><span class="fa fa-star-o"></span></a> -->
+                                    <!-- </p> -->
+                                    <!-- </div> -->
+                                    <!-- <div class="col-xs-12 col-sm-6 emphasis"> -->
+                                    <!-- <button type="button" class="btn btn-success btn-xs"> <i class="fa fa-user"> -->
+                                    <!-- </i> <i class="fa fa-comments-o"></i> </button> -->
+                                    <!-- <button type="button" class="btn btn-primary btn-xs"> -->
+                                    <!-- <i class="fa fa-user"> </i> View Profile -->
+                                    <!-- </button> -->
+                                    <!-- </div> -->
+                                    <!-- </div> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End -->
+
+@section scripts{
+
+    <script>
+        $('#SignedDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#TerminalDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#meadate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#mddate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#offrdate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Date').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
+    </script>
+    <script src="https://code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+
+}

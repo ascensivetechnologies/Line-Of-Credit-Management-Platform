@@ -1,0 +1,146 @@
+﻿@model MapReportModel
+@using AMP.ViewModels.Dashboad2
+@using AMP.Services
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_NewLayout.cshtml";
+}
+<style>
+    body {
+        margin: 0;
+        padding: 10px 20px 20px;
+        font-family: Arial;
+        font-size: 16px;
+    }
+
+    #map-container {
+        padding: 6px;
+        border-width: 1px;
+        border-style: solid;
+        border-color: #ccc #ccc #999 #ccc;
+        -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+        width: 100%;
+    }
+
+    #map {
+        width: 100%;
+        height: 600px;
+    }
+</style>
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=@StringMapperService.GetValue("GoogleAPIKey")"></script>
+<script type="text/javascript" src="~/Scripts/CustomScripts/markerclusterer.js"></script>
+
+<script>
+    function initialize() {
+        var center = new google.maps.LatLng(21.309861524942466, 54.259335062499986);
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: center,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+        var s = '@Html.Raw(Json.Encode(@Model.Locations))';
+            s = s.replace(/\\n/g, "\\n")
+               .replace(/\\'/g, "\\'")
+               .replace(/\\"/g, '\\"')
+               .replace(/\\&/g, "\\&")
+               .replace(/\\r/g, "\\r")
+               .replace(/\\t/g, "\\t")
+               .replace(/\\b/g, "\\b")
+               .replace(/\\f/g, "\\f");
+        // remove non-printable and other non-valid JSON chars
+        s = s.replace(/[\u0000-\u0019]+/g, "");
+        var markerList = JSON.parse(s)
+        console.log(markerList);
+
+
+        var infoWindowContent = [];
+        var sector = $("#Locations option:selected").text();
+        var markers = [];
+        for (var i = 0; i < markerList.length; i++) {
+
+            var markerObj = markerList[i];
+            if (sector == "All" || markerObj.sector == sector) {
+                infoWindowContent[i] = getInfoWindowDetails(markerList[i]);
+
+                var latLng = new google.maps.LatLng(markerObj.lat, markerObj.lon);
+
+                var marker = new google.maps.Marker({
+                    position: latLng,
+                    title: markerObj.info1 + ' (' + markerObj.info2 + ') - ' + markerObj.info3 + '',
+                });
+
+                google.maps.event.addListener(marker, 'click', (function (marker, index) {
+                    return function () {
+                        var infowindow = new google.maps.InfoWindow({
+                            content: infoWindowContent[index]
+                        });
+                        infowindow.open(map, marker);
+                        map.setCenter(marker.getPosition());
+                        //map.setZoom(15);
+                    }
+                })(marker, i));
+
+                markers.push(marker);
+            }
+        }
+
+        function getInfoWindowDetails(location) {
+            var contentString = '<div id="content" style="width:180px">' +
+                                '<h4 id="firstHeading" class="firstHeading">' + location.info1 + '</h4>' +
+                                '<div id="bodyContent">' +
+                                    '<div style="float:left;width:100%">Status: ' + location.info2 + '</div>' +
+                                    '<div style="float:left;width:100%">Value: ' + location.info3 + '</div>' +
+                                '</div>' +
+                            '</div>';
+            return contentString;
+        }
+
+        var mcOptions = {
+            //imagePath: 'https://googlemaps.github.io/js-marker-clusterer/images/m',
+            styles: [{
+                url: "../Content/localImages/m1.png",
+                width: 53,
+                height: 53,
+                fontFamily: "comic sans ms",
+                textSize: 14,
+                textColor: "black",
+                //color: #00FF00,
+            }]
+        };
+
+        var markerCluster = new MarkerClusterer(map, markers, mcOptions);
+    }
+    google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<h2>Project Distribution</h2>
+<div class="modal-body">
+    <div class="container">
+        <div class="row">
+            <div class='col-sm-12'>
+                <div class='col-sm-3'>
+                    Select Sector:
+                </div>
+                <div class="col-md-3">
+                    <fieldset>
+                        <div class="control-group">
+                            <div class="controls">
+                                <div class="col-md-11 xdisplay_inputx form-group">
+                                    @Html.DropDownListFor(m => m.Locations, new SelectList(Model.Locations.GroupBy(e => e.sector).Select(o => o.FirstOrDefault()), "sector", "sector"), "All")
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class='col-sm-6'>
+                    <button class="btn btn-success btn-xs" onclick="initialize()">Reload Map</button> <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="map-container"><div id="map"></div></div>
