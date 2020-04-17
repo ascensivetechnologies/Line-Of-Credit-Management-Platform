@@ -65,7 +65,7 @@
                             <div class="row">
                                 <div class='col-sm-12'>
                                     <div class='col-sm-3'>
-                                        Estimate Value :
+                                        Contract Value :
                                         <span class="red">*</span>
                                     </div>
                                     <div class="col-md-3">
@@ -170,7 +170,7 @@
                             <div class="row">
                                 <div class='col-sm-12'>
                                     <div class='col-sm-3'>
-                                        Signing Date :
+                                        Date of Contract Signing :
                                     </div>
                                     <div class="col-md-3">
                                         <fieldset>
@@ -186,7 +186,7 @@
                                         </fieldset>
                                     </div>
                                     <div class='col-sm-3'>
-                                        Signing Effective Date :
+                                        Effective Date of Contract :
                                     </div>
                                     <div class="col-md-3">
                                         <fieldset>
@@ -203,11 +203,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row" style="margin-top:10px;">
                                 <div class='col-sm-12'>
                                     <div class='col-sm-3'>
-                                        Effective date of project :
+                                        Effective date of Project :
                                         <span class="red">*</span>
                                     </div>
                                     <div class="col-md-3">
@@ -224,7 +224,7 @@
                                         </fieldset>
                                     </div>
                                     <div class='col-sm-3'>
-                                        Actual commercial operation date of project :
+                                        Actual commercial operation date of Project :
                                         <span class="red">*</span>
                                     </div>
                                     <div class="col-md-3">
@@ -242,7 +242,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row" style="margin-top:10px;">
                                 <div class="col-sm-12">
                                     <div class='col-sm-3'>Scheduled completion date of project</div>
@@ -254,6 +254,141 @@
                                                         <input type="text" id="Contract_ScheduledDate" name="Contract.ScheduledCompDate" class="form-control has-feedback-left" placeholder="Scheduled Completion Date" value="@(Model.Contract.ScheduledCompDate)">
                                                         <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
                                                         <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>Contract Approval Date<span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_ApprovalDate" name="Contract.ContractApprovalDate" 
+                                                               class="form-control has-feedback-left" placeholder="Approval Date" 
+                                                               value="@(Model.Contract.ContractApprovalDate)" required="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class='col-sm-3'>Revised completion date<span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_RevisedCompletionDate" name="Contract.RevisedCompletionDate" class="form-control has-feedback-left" 
+                                                               placeholder="Revised Completion Date" value="@(Model.Contract.RevisedCompletionDate)" required="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>Actual Completion Date<span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_ActualCompletionDate" name="Contract.ActualCompletionDate" 
+                                                               class="form-control has-feedback-left" placeholder="Actual Completion" 
+                                                               value="@(Model.Contract.ActualCompletionDate)" required="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class='col-sm-3'>Terminal date of disbursement<span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_TerminalDateOfDisbursement" 
+                                                               name="Contract.TerminalDateOfDisbursement" 
+                                                               class="form-control has-feedback-left" placeholder="Terminal Disbursement" 
+                                                               value="@(Model.Contract.TerminalDateOfDisbursement)" required="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class='col-sm-3'>Date of receipt of Contract Agreement & Contract Inclusion Form by Exim Bank : <span class="red">*</span></div>
+                                    <div class='col-sm-3'>
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx date has-feedback">
+                                                        <input type="text" id="Contract_DateOfReceiptOfContractByEximBank" 
+                                                               name="Contract.DateOfReceiptOfContractByEximBank" 
+                                                               class="form-control has-feedback-left" placeholder="" 
+                                                               value="@(Model.Contract.DateOfReceiptOfContractByEximBank)" required="">
+                                                        <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                        <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:10px;">
+                                <div class='col-sm-12'>
+                                    <div class='col-sm-3'>
+                                        Duration
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <label for="country-cif">Years <span class="red"></span></label>
+                                                        @Html.EditorFor(e => e.Contract.DurationYear, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationYear", @placeholder = "Year" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <label for="country-cif">Months<span class="red"></span></label>
+                                                        @Html.EditorFor(e => e.Contract.DurationMonth, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationMonth", @placeholder = "Month" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <fieldset>
+                                            <div class="control-group">
+                                                <div class="controls">
+                                                    <div class="col-md-11 xdisplay_inputx form-group">
+                                                        <label for="country-cif">Days<span class="red"></span></label>
+                                                        @Html.EditorFor(e => e.Contract.DurationDay, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12", @id = "DurationDay", @placeholder = "Day" } })
                                                     </div>
                                                 </div>
                                             </div>
@@ -320,7 +455,24 @@
         });
         $('#Contract_ScheduledDate').datetimepicker({
             format: 'DD/MM/YYYY'
-        })
+        });
+
+        $('#Contract_ApprovalDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_RevisedCompletionDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_ActualCompletionDate').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_TerminalDateOfDisbursement').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+        $('#Contract_DateOfReceiptOfContractByEximBank').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
 
     </script>
 

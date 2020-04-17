@@ -27,47 +27,23 @@
             </div>
             <div class="col-md-3 col-sm-3 col-xs-12 bg-white">
                 <div class="x_title">
-                    <h2>Top 5 LOCs</h2>
+                    <h2>Top 5 LOCs by Disbursements</h2>
                     <div class="clearfix"></div>
                 </div>
 
-                <div class="col-md-12 col-sm-12 col-xs-6">
-                    <div>
-                        <p>GOILOC1234</p>
-                        <div class="">
-                            <div class="progress progress_sm" style="width: 76%;">
-                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="80"></div>
+                @foreach (var loc in Model.Locs)
+                {
+                    <div class="col-md-12 col-sm-12 col-xs-6">
+                        <div>
+                            <p>@loc.Name : @string.Format("{0:0.00}", loc.Disbursed/1000000) Mn</p>
+                            <div class="">
+                                <div class="progress progress_sm" style="width: 76%;">
+                                    <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="@loc.Percentage"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <p>GOILOC145</p>
-                        <div class="">
-                            <div class="progress progress_sm" style="width: 76%;">
-                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="60"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12 col-sm-12 col-xs-6">
-                    <div>
-                        <p>GOI-LOC675</p>
-                        <div class="">
-                            <div class="progress progress_sm" style="width: 76%;">
-                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="40"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <p>GOILOC-231</p>
-                        <div class="">
-                            <div class="progress progress_sm" style="width: 76%;">
-                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="50"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                }
             </div>
 
             <div class="clearfix"></div>
@@ -90,7 +66,7 @@
                             <li>
                                 <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                             </li>
-                            
+
                             <li>
                                 <a class="close-link"><i class="fa fa-close"></i></a>
                             </li>
@@ -130,7 +106,7 @@
                             <li>
                                 <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                             </li>
-                           
+
                             <li>
                                 <a class="close-link"><i class="fa fa-close"></i></a>
                             </li>
@@ -164,7 +140,7 @@
                                                 <td>
                                                     <p><i class="fa fa-square blue"></i>@sec.Name </p>
                                                 </td>
-                                                <td>@string.Format("{0:0.00}",sec.Percentage)%</td>
+                                                <td>@string.Format("{0:0.00}", sec.Percentage)%</td>
                                             </tr>
                                         }
                                     </table>
@@ -192,7 +168,7 @@
                         <div class="x_content">
                             <div class="dashboard-widget-content">
                                 <div class="col-md-4 hidden-small">
-                                    <h2 class="line_30">@string.Format("{0:0.00}",Model.TotalAmount) Sanctioned to @Model.Countries countries</h2>
+                                    <h2 class="line_30">@string.Format("{0:0.00}", Model.TotalAmount) Sanctioned to @Model.Countries countries</h2>
 
                                     <table class="countries_list">
                                         <tbody>
@@ -203,7 +179,7 @@
                                                     <td class="fs15 fw700 text-right">@co.Amount</td>
                                                 </tr>
                                             }
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -263,122 +239,122 @@
 </div>
 
 @section scripts{
-<script>
-    var arr_data1 = [
-        @foreach(var dis in Model.Disb)
+    <script>
+        var arr_data1 = [
+            @foreach(var dis in Model.Disb)
         {
             <text>
-            [gd(@dis.Year, 1, 1), @dis.Count],
-            </text>
+                [gd(@dis.Year, 1, 1), @dis.Count],
+                </text>
         }
-    ];
+        ];
 
-    var arr_data2 = [
-      @foreach(var re in Model.Repayments)
+        var arr_data2 = [
+          @foreach(var re in Model.Repayments)
         {
             <text>
-            [gd(@re.Year, 1, 1), @re.Count],
-            </text>
+                [gd(@re.Year, 1, 1), @re.Count],
+                </text>
         }
-    ];
-    var chart_plot_01_settings = {
-        series: {
-            lines: {
-                show: false,
-                fill: false
+        ];
+        var chart_plot_01_settings = {
+            series: {
+                lines: {
+                    show: false,
+                    fill: false
+                },
+                splines: {
+                    show: true,
+                    tension: 0.4,
+                    lineWidth: 1,
+                    fill: 0.4
+                },
+                points: {
+                    radius: 0,
+                    show: true
+                },
+                shadowSize: 2
             },
-            splines: {
-                show: true,
-                tension: 0.4,
-                lineWidth: 1,
-                fill: 0.4
+            grid: {
+                verticalLines: true,
+                hoverable: true,
+                clickable: true,
+                tickColor: "#d5d5d5",
+                borderWidth: 1,
+                color: '#fff'
             },
-            points: {
-                radius: 0,
-                show: true
+            colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
+            xaxis: {
+                tickColor: "rgba(51, 51, 51, 0.06)",
+                mode: "time",
+                tickSize: [2, "year"],
+                //tickLength: 10,
+                axisLabel: "Year",
+                axisLabelUseCanvas: true,
+                axisLabelFontSizePixels: 12,
+                axisLabelFontFamily: 'Verdana, Arial',
+                axisLabelPadding: 10
             },
-            shadowSize: 2
-        },
-        grid: {
-            verticalLines: true,
-            hoverable: true,
-            clickable: true,
-            tickColor: "#d5d5d5",
-            borderWidth: 1,
-            color: '#fff'
-        },
-        colors: ["rgba(38, 185, 154, 0.38)", "rgba(3, 88, 106, 0.38)"],
-        xaxis: {
-            tickColor: "rgba(51, 51, 51, 0.06)",
-            mode: "time",
-            tickSize: [2, "year"],
-            //tickLength: 10,
-            axisLabel: "Year",
-            axisLabelUseCanvas: true,
-            axisLabelFontSizePixels: 12,
-            axisLabelFontFamily: 'Verdana, Arial',
-            axisLabelPadding: 10
-        },
-        yaxis: {
-            ticks: 15,
-            tickColor: "rgba(51, 51, 51, 0.06)",
-           
-        },
-        tooltip: true
-    }
-    if ($("#repayment").length) {
-        
-        $.plot($("#repayment"), [arr_data1, arr_data2], chart_plot_01_settings);
-    }
+            yaxis: {
+                ticks: 15,
+                tickColor: "rgba(51, 51, 51, 0.06)",
+
+            },
+            tooltip: true
+        }
+        if ($("#repayment").length) {
+
+            $.plot($("#repayment"), [arr_data1, arr_data2], chart_plot_01_settings);
+        }
 
 
-    var sectors_setting = {
-        type: 'doughnut',
-        tooltipFillColor: "rgba(51, 51, 51, 0.55)",
-        data: {
-            labels: [
-                @foreach(var sec in Model.Sectors)
+        var sectors_setting = {
+            type: 'doughnut',
+            tooltipFillColor: "rgba(51, 51, 51, 0.55)",
+            data: {
+                labels: [
+                    @foreach(var sec in Model.Sectors)
                 {
                     <text>
-                    "@sec.Name",
-                    </text>
+                        "@sec.Name",
+                        </text>
                 }
-            ],
-            datasets: [{
-                data: [
-                    @foreach(var sec in Model.Sectors)
+                ],
+                datasets: [{
+                    data: [
+                        @foreach(var sec in Model.Sectors)
                     {
                         <text>
-                        @string.Format("{0:0.00}",sec.Percentage),
-                        </text>
+                            @string.Format("{0:0.00}",sec.Percentage),
+                            </text>
                     }
-                ],
-                backgroundColor: [
-                    "#BDC3C7",
-                    "#9B59B6",
-                    "#E74C3C",
-                    "#26B99A",
-                    "#3498DB"
-                ],
-                hoverBackgroundColor: [
-                    "#CFD4D8",
-                    "#B370CF",
-                    "#E95E4F",
-                    "#36CAAB",
-                    "#49A9EA"
-                ]
-            }]
-        },
-        options: { 
-            legend: false, 
-            responsive: false 
+                    ],
+                    backgroundColor: [
+                        "#BDC3C7",
+                        "#9B59B6",
+                        "#E74C3C",
+                        "#26B99A",
+                        "#3498DB"
+                    ],
+                    hoverBackgroundColor: [
+                        "#CFD4D8",
+                        "#B370CF",
+                        "#E95E4F",
+                        "#36CAAB",
+                        "#49A9EA"
+                    ]
+                }]
+            },
+            options: {
+                legend: false,
+                responsive: false
+            }
         }
-    }
-		
+
         var chart_element = $("#Sectors");
         var chart_doughnut = new Chart( chart_element, sectors_setting);
-		
-    
+
+
 
         $('#WorldMap').vectorMap({
             map: 'world_en',
@@ -392,6 +368,6 @@
             scaleColors: ['#E6F2F0', '#149B7E'],
             normalizeFunction: 'polynomial'
         });
-    	
-</script>
+
+    </script>
 }

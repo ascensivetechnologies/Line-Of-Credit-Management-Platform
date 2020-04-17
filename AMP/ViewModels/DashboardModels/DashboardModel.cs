@@ -10,8 +10,52 @@ namespace AMP.ViewModels.DashboardModels
     public class DashboardModel
     {
         private AMPEntities ampEntities;
-        public List<DashboardLocModel> Locs { get; set; }
-        public List<DashboardRegionModel> Regions { get
+        public List<DashboardLocModel> Locs
+        {
+            get
+            {
+                var query = ampEntities.TBL_LOC.AsNoTracking().Select(p => new
+                {
+                    //RegionId = p.TBL_Country.TBL_Regions.Id,
+                    //RegionName = p.TBL_Country.TBL_Regions.Name,
+                    p.LocNumber,
+                    AmountAllocated = p.TotalAmount,
+                    SanctionAmount = ampEntities.Finacle_LocDetails.Where(fl => fl.LimitPrefix.Equals(p.LocNumber))
+                    .Select(fl => fl.SanctionAmount.HasValue ? fl.SanctionAmount : 0).FirstOrDefault(),
+                    DisbAmt = ampEntities.Finacle_Disbursement.Where(e => e.FORACID.Equals(p.LocAccountNo)).Sum(a => a.DisbAmount)
+                })
+                    .Select(p1 => new
+                    {
+                        p1.LocNumber,
+                        p1.AmountAllocated,
+                        p1.DisbAmt,
+                    }).Select(p5 => new DashboardLocModel
+                    {
+                        Name = p5.LocNumber,
+                        Allocated = p5.AmountAllocated.HasValue ? p5.AmountAllocated.Value : 0,
+                        Disbursed = p5.DisbAmt.HasValue ? p5.DisbAmt.Value : 0,
+                        Percentage = ((p5.AmountAllocated.HasValue ? p5.AmountAllocated.Value : 0) > 0 ? (((p5.DisbAmt.HasValue ? p5.DisbAmt.Value : 0) / p5.AmountAllocated.Value) * 100) : 0),
+                    })
+                    .OrderByDescending(p5 => p5.Disbursed)
+                    .Take(5);
+                return query.ToList();
+                //return new Dashboard2ServiceLayer().GetAllLocs().GroupBy(e => new { e.Region.Id, e.Region.Name }).Select(e =>
+                //  {
+                //      float val = 0;
+                //      var TotalAmount = e.Sum(x => float.TryParse(x.AmountAllocated, out val) ? val : 0);
+                //      var Utilized = e.Sum(x => (x.Utilization/100) * (float.TryParse(x.AmountAllocated, out val) ? val : 0));
+                //      return new DashboardRegionModel()
+                //      {
+                //          Name = e.Key.Name,
+                //          Amount = TotalAmount,
+                //          Percentage = TotalAmount > 0 ? ((Utilized / TotalAmount) * 100) : 0
+                //      };
+                //  }).OrderByDescending(e => e.Amount).Take(5).ToList();
+            }
+        }
+        public List<DashboardRegionModel> Regions
+        {
+            get
             {
                 var query = ampEntities.TBL_LOC.AsNoTracking().Select(p => new
                 {
@@ -59,14 +103,18 @@ namespace AMP.ViewModels.DashboardModels
                 //  }).OrderByDescending(e => e.Amount).Take(5).ToList();
             }
         }
-        public List<DashboardActivity> Activity { get
+        public List<DashboardActivity> Activity
+        {
+            get
             {
-                return new Dashboard2ServiceLayer().GetAllActivity(limit:5);
+                return new Dashboard2ServiceLayer().GetAllActivity(limit: 5);
             }
         }
-        public List<DashboardDevelopmentSector> Sectors { get
+        public List<DashboardDevelopmentSector> Sectors
+        {
+            get
             {
-                var totalAmount = ampEntities.TBL_Projects.AsNoTracking().Sum(c => (Decimal?) c.ProjectValue) ?? 0;
+                var totalAmount = ampEntities.TBL_Projects.AsNoTracking().Sum(c => (Decimal?)c.ProjectValue) ?? 0;
                 //var totalAmount = new Dashboard2ServiceLayer().GetAllProjects(null).Sum(e => e.ProjectValue);
                 var result = ampEntities.TBL_Projects.AsNoTracking().GroupBy(p => p.Sector)
                     .Select(e => new DashboardDevelopmentSector
@@ -87,17 +135,19 @@ namespace AMP.ViewModels.DashboardModels
                 //}).OrderByDescending(e => e.Percentage).Take(5).ToList();
             }
         }
-        public List<DashboardMemberCountries> MemberCountries { get
+        public List<DashboardMemberCountries> MemberCountries
+        {
+            get
             {
                 var result = ampEntities.TBL_LOC.AsNoTracking().Select(m => new
                 {
                     m.TotalAmount,
                     Name = m.TBL_Country.Name
                 }).GroupBy(m => m.Name).Select(e => new DashboardMemberCountries
-                    {
-                        Amount = e.Sum(x => x.TotalAmount.HasValue ? x.TotalAmount.Value : 0),
-                        Name = e.Key
-                    }
+                {
+                    Amount = e.Sum(x => x.TotalAmount.HasValue ? x.TotalAmount.Value : 0),
+                    Name = e.Key
+                }
                     ).OrderByDescending(e => e.Amount).Take(6).ToList();
 
                 return result;
@@ -112,7 +162,9 @@ namespace AMP.ViewModels.DashboardModels
                 //}).OrderByDescending(e => e.Amount).Take(6).ToList();
             }
         }
-        public List<DisbvRepaymentsModel> Disb { get
+        public List<DisbvRepaymentsModel> Disb
+        {
+            get
             {
                 return ampEntities.Finacle_Disbursement.GroupBy(m => m.DisDate.Value.Year)
                    .Select(m => new DisbvRepaymentsModel
@@ -131,7 +183,8 @@ namespace AMP.ViewModels.DashboardModels
                 //}).OrderByDescending(e => e.Year).Where(e => e.Year != 0).Take(10).ToList();
             }
         }
-        public List<DisbvRepaymentsModel> Repayments {
+        public List<DisbvRepaymentsModel> Repayments
+        {
             get
             {
 
@@ -154,7 +207,9 @@ namespace AMP.ViewModels.DashboardModels
             }
         }
 
-        public decimal TotalAmount { get
+        public decimal TotalAmount
+        {
+            get
             {
                 decimal? a = 0;
                 a = ampEntities.TBL_LOC.AsNoTracking().Sum(e => e.TotalAmount);
@@ -162,7 +217,9 @@ namespace AMP.ViewModels.DashboardModels
             }
         }
 
-        public int Countries { get
+        public int Countries
+        {
+            get
             {
                 var count = ampEntities.TBL_LOC.AsNoTracking().GroupBy(e => e.CountryId).Count();
                 return count;

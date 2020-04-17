@@ -67,8 +67,13 @@
     }
     @if (ViewData.ContainsKey("JavascriptFunction"))
     {
-        @Html.Raw(ViewData["JavascriptFunction"].ToString())
+        @Html.Raw(
+        "if(!(window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD)) {" + 
+        ViewData["JavascriptFunction"].ToString()
+        + "}"
+       )
     }
+    
     $(document).ready(function () {
         $(".bs-pqapplicants-modal-lg").on("show.bs.modal", function (e) {
             $("#ApplicantId").val(selectedApplicantId);
